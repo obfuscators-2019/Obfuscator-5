@@ -14,6 +14,8 @@ namespace Ofuscator.Domain
         public IEnumerable<string> CsvLines { get; set; }
         public bool HasHeaders { get; set; } = true;
 
+        public int GetColumns() => ((CsvLines?.Any() == true) ? (CsvLines.First().Split(new char[] { ',' }).Count()) : 0);
+
         public IEnumerable<string> GetHeaders() => HasHeaders ? CsvLines?.FirstOrDefault()?.Split(new char[] { ',' }) : null;
 
         public IEnumerable<string> GetContent(int columnIndex)

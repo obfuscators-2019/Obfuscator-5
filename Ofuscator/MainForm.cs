@@ -39,6 +39,9 @@ namespace Ofuscator
 
             foreach (var control in columnSelector.Controls)
             {
+                var csvInfoBounded = (CsvInformation)dataSourceInformationBindingSource.Current;
+                csvInfoBounded.HasHeaders = chkHasHeaders.Checked;
+
                 var columnContent = (Label)control;
                 if (chkHasHeaders.Checked)
                     FormatColumnWithHeader(columnContent);
@@ -47,7 +50,7 @@ namespace Ofuscator
             }
         }
 
-        private static void FormatColumnWithoutHeader(Label columnContent)
+        private void FormatColumnWithoutHeader(Label columnContent)
         {
             var closingBracketsCharIndex = columnContent.Text.IndexOf(']', 3);
             if (closingBracketsCharIndex < 0)
@@ -60,7 +63,7 @@ namespace Ofuscator
                     + columnContent.Text.Substring(closingBracketsCharIndex + 2);
         }
 
-        private static void FormatColumnWithHeader(Label columnContent)
+        private void FormatColumnWithHeader(Label columnContent)
         {
             var secondColumnCharIndex = columnContent.Text.IndexOf('\n', 2);
             columnContent.Text = columnContent.Text.Substring(0, 1)
@@ -149,23 +152,25 @@ namespace Ofuscator
         {
             var csvFile = new CsvFile();
             csvFile.ReadFile(csvInformation.FileName, 5);
-            csvFile.HasHeaders = chkHasHeaders.Checked = true;
-            var headers = csvFile.GetHeaders();
+            csvFile.HasHeaders = chkHasHeaders.Checked = csvInformation.HasHeaders;
+
+            IEnumerable<string> headers = csvFile.GetHeaders();
 
             columnSelector.Controls.Clear();
-            columnSelector.Tag = csvInformation;
+            SetCsvInformationForCurrentColumns(csvInformation);
 
-            int columnIndex = 0;
             var previousCoordinate = 0;
-            foreach (var header in headers)
+            for (int columnIndex = 0; columnIndex < csvFile.GetColumns(); columnIndex++)
             {
                 var label = new Label
                 {
-                    Text = $"{columnIndex} [{header}]",
                     BorderStyle = BorderStyle.FixedSingle,
                     AutoSize = false,
                     Height = columnSelector.Height
                 };
+
+                if (csvInformation.HasHeaders) label.Text = $"{columnIndex} [{headers.ElementAt(columnIndex)}]";
+                else label.Text = $"{columnIndex}";
 
                 foreach (var columnContent in csvFile.GetContent(columnIndex))
                     label.Text += $"\n{columnContent}";
@@ -179,12 +184,13 @@ namespace Ofuscator
                     else
                     {
                         var csvDataSource = (List<CsvInformation>)dataSourceInformationBindingSource.DataSource;
-                        var csvInfoBounded = csvDataSource.FirstOrDefault(x => x == (CsvInformation)columnSelector.Tag);
+                        CsvInformation currentCsvInfo = GetCsvInformationForCurrentColumns();
+                        var csvInfoBounded = csvDataSource.FirstOrDefault(x => x == currentCsvInfo);
                         if (chkHasHeaders.Checked)
                         {
                             var firstBracketIndex = clicked.Text.IndexOf('[');
                             csvInformation.ColumnIndex = int.Parse(clicked.Text.Substring(0, firstBracketIndex));
-                            csvInformation.ColumnName = $"{clicked.Text.Substring(firstBracketIndex+1, firstEnterCharIndex-firstBracketIndex-2)}";
+                            csvInformation.ColumnName = $"{clicked.Text.Substring(firstBracketIndex + 1, firstEnterCharIndex - firstBracketIndex - 2)}";
                         }
                         else
                         {
@@ -198,8 +204,66 @@ namespace Ofuscator
                 label.Left = previousCoordinate + 2;
                 columnSelector.Controls.Add(label);
                 previousCoordinate += label.Width;
-                columnIndex++;
             }
+        }
+
+        private CsvInformation GetCsvInformationForCurrentColumns()
+        {
+            return (CsvInformation)columnSelector.Tag;
+        }
+
+        private void SetCsvInformationForCurrentColumns(CsvInformation csvInformation)
+        {
+            columnSelector.Tag = csvInformation;
+        }
+
+        private void BtnConnect_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var sqlDb = new SqlDatabase { ConnectionString = txtSqlConnectionString.Text };
+                sqlDb.RetrieveDatabaseInfo();
+
+                InitializeComboTableNames();
+                comboTableNames.DataSource = sqlDb.Tables;
+                comboTableNames.DisplayMember = "Name";
+                comboTableNames.SelectedIndexChanged += ComboTableNames_SelectedIndexChanged;
+            }
+            catch (Exception ex)
+            {
+                var exceptionInfo = $"EXCEPTION: ({ex.GetType().ToString()}) {ex.Message}";
+                Trace.WriteLine(exceptionInfo);
+                MessageBox.Show(exceptionInfo, "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                InitializeComboTableNames();
+                InitializeComboFields();
+            }
+        }
+
+        private void ComboTableNames_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            InitializeComboFields();
+            var table = (TableInfo)comboTableNames.SelectedItem;
+            if (table != null && table.Columns != null)
+            {
+                comboField.DataSource = table.Columns;
+                comboField.DisplayMember = "Name";
+            }
+        }
+
+        private void InitializeComboFields()
+        {
+            comboField.DisplayMember = string.Empty;
+            comboField.DataSource = null;
+            comboField.Text = "Select field...";
+        }
+
+        private void InitializeComboTableNames()
+        {
+            comboTableNames.SelectedIndexChanged -= ComboTableNames_SelectedIndexChanged;
+            comboTableNames.DisplayMember = string.Empty;
+            comboTableNames.DataSource = null;
+            comboTableNames.Text = "Select table...";
         }
     }
 }
