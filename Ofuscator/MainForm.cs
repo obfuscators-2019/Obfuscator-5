@@ -150,69 +150,89 @@ namespace Ofuscator
 
         private void SetupColumnSelection(CsvInformation csvInformation)
         {
-            var csvFile = new CsvFile();
-            csvFile.ReadFile(csvInformation.FileName, 5);
-            csvFile.HasHeaders = chkHasHeaders.Checked = csvInformation.HasHeaders;
-
-            IEnumerable<string> headers = csvFile.GetHeaders();
-
             columnSelector.Controls.Clear();
-            SetCsvInformationForCurrentColumns(csvInformation);
+            BackupCsvInstanceForCurrentColumns(csvInformation);
+
+            CsvFile csvFile = ReadFiveLinesFromCsv(csvInformation);
+            IEnumerable<string> headers = csvFile.GetHeaders();
 
             var previousCoordinate = 0;
             for (int columnIndex = 0; columnIndex < csvFile.GetColumns(); columnIndex++)
             {
-                var label = new Label
-                {
-                    BorderStyle = BorderStyle.FixedSingle,
-                    AutoSize = false,
-                    Height = columnSelector.Height
-                };
+                Label label = CreateLabel();
+                AddColumnIndexAndHeadersToLabel(csvInformation, headers, columnIndex, label);
+                AddContentToLabel(csvFile, columnIndex, label);
 
-                if (csvInformation.HasHeaders) label.Text = $"{columnIndex} [{headers.ElementAt(columnIndex)}]";
-                else label.Text = $"{columnIndex}";
-
-                foreach (var columnContent in csvFile.GetContent(columnIndex))
-                    label.Text += $"\n{columnContent}";
-
-                label.Click += (sender, e) =>
-                {
-                    var clicked = (Label)sender;
-                    var firstEnterCharIndex = clicked.Text.IndexOf('\n');
-                    if (firstEnterCharIndex < 0)
-                        MessageBox.Show("Can't get this header.\nPlease check the content of this file.", "WARNING", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    else
-                    {
-                        var csvDataSource = (List<CsvInformation>)dataSourceInformationBindingSource.DataSource;
-                        CsvInformation currentCsvInfo = GetCsvInformationForCurrentColumns();
-                        var csvInfoBounded = csvDataSource.FirstOrDefault(x => x == currentCsvInfo);
-                        if (chkHasHeaders.Checked)
-                        {
-                            var firstBracketIndex = clicked.Text.IndexOf('[');
-                            csvInformation.ColumnIndex = int.Parse(clicked.Text.Substring(0, firstBracketIndex));
-                            csvInformation.ColumnName = $"{clicked.Text.Substring(firstBracketIndex + 1, firstEnterCharIndex - firstBracketIndex - 2)}";
-                        }
-                        else
-                        {
-                            csvInformation.ColumnIndex = int.Parse(clicked.Text.Substring(0, firstEnterCharIndex));
-                            csvInformation.ColumnName = "";
-                        }
-                        dataGridCsvInformation.Refresh();
-                    }
-                };
-
+                label.Click += LabelColumn_Click;
                 label.Left = previousCoordinate + 2;
-                columnSelector.Controls.Add(label);
                 previousCoordinate += label.Width;
+
+                columnSelector.Controls.Add(label);
             }
         }
 
-        private CsvInformation GetCsvInformationForCurrentColumns()
+        private void LabelColumn_Click(object sender, EventArgs e)
+        {
+            var clicked = (Label)sender;
+            var firstEnterCharIndex = clicked.Text.IndexOf('\n');
+            if (firstEnterCharIndex < 0)
+                MessageBox.Show("Can't get this header.\nPlease check the content of this file.", "WARNING", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            else
+            {
+                var csvDataSource = (List<CsvInformation>)dataSourceInformationBindingSource.DataSource;
+                CsvInformation currentCsvInfo = GetCsvInstanceForCurrentColumns();
+                var csvInfoBounded = csvDataSource.FirstOrDefault(x => x == currentCsvInfo);
+                if (chkHasHeaders.Checked)
+                {
+                    var firstBracketIndex = clicked.Text.IndexOf('[');
+                    csvInfoBounded.ColumnIndex = int.Parse(clicked.Text.Substring(0, firstBracketIndex));
+                    csvInfoBounded.ColumnName = $"{clicked.Text.Substring(firstBracketIndex + 1, firstEnterCharIndex - firstBracketIndex - 2)}";
+                }
+                else
+                {
+                    csvInfoBounded.ColumnIndex = int.Parse(clicked.Text.Substring(0, firstEnterCharIndex));
+                    csvInfoBounded.ColumnName = "";
+                }
+                dataGridCsvInformation.Refresh();
+            }
+        }
+
+        private void AddContentToLabel(CsvFile csvFile, int columnIndex, Label label)
+        {
+            foreach (var columnContent in csvFile.GetContent(columnIndex))
+                label.Text += $"\n{columnContent}";
+        }
+
+        private void AddColumnIndexAndHeadersToLabel(CsvInformation csvInformation, IEnumerable<string> headers, int columnIndex, Label label)
+        {
+            if (csvInformation.HasHeaders) label.Text = $"{columnIndex} [{headers.ElementAt(columnIndex)}]";
+            else label.Text = $"{columnIndex}";
+        }
+
+        private CsvFile ReadFiveLinesFromCsv(CsvInformation csvInformation)
+        {
+            var csvFile = new CsvFile();
+            csvFile.ReadFile(csvInformation.FileName, 5);
+            csvFile.HasHeaders = chkHasHeaders.Checked = csvInformation.HasHeaders;
+            return csvFile;
+        }
+
+        private Label CreateLabel()
+        {
+            return new Label
+            {
+                BorderStyle = BorderStyle.FixedSingle,
+                AutoSize = false,
+                Height = columnSelector.Height
+            };
+        }
+
+        private CsvInformation GetCsvInstanceForCurrentColumns()
         {
             return (CsvInformation)columnSelector.Tag;
         }
 
-        private void SetCsvInformationForCurrentColumns(CsvInformation csvInformation)
+        private void BackupCsvInstanceForCurrentColumns(CsvInformation csvInformation)
         {
             columnSelector.Tag = csvInformation;
         }
