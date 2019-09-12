@@ -23,28 +23,6 @@ namespace Ofuscator
             ConfigureDataGridBindingSource();
         }
 
-        private void btnSelectFileAndColumn_Click(object sender, EventArgs e)
-        {
-            columnSelector.Controls.Clear();
-
-            TextBox[] txtCsvFileNameAndColumn = GetTextBoxesFor((Button)sender);
-            var fileName = txtCsvFileNameAndColumn[0].Text;
-
-            if (!File.Exists(fileName)) fileName = "";
-
-            DialogResult userResponseToChangeFile = ConfirmToSelectANewFile(fileName);
-
-            if (userResponseToChangeFile == DialogResult.Yes)
-            {
-                fileName = SelectFile(txtCsvFileNameAndColumn[0].Text);
-                if (fileName == null) return;
-                txtCsvFileNameAndColumn[0].Text = fileName;
-                txtCsvFileNameAndColumn[1].Text = string.Empty;
-            }
-
-            SetupColumnSelection(fileName, txtCsvFileNameAndColumn[1]);
-        }
-
         private static DialogResult ConfirmToSelectANewFile(string fileName)
         {
             var userResponseToChangeFile = DialogResult.Yes;
@@ -53,43 +31,6 @@ namespace Ofuscator
                 userResponseToChangeFile = MessageBox.Show("Change file?", "CONFIRM", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
             return userResponseToChangeFile;
-        }
-
-        private void SetupColumnSelection(string fileName, TextBox txtColumnName)
-        {
-            var csvFile = new CsvFile();
-            csvFile.ReadFile(fileName, 5);
-            csvFile.HasHeaders = chkHasHeaders.Checked = true;
-            var headers = csvFile.GetHeaders();
-
-            int columnIndex = 0;
-            var previousCoordinate = 0;
-            foreach (var header in headers)
-            {
-                var label = new Label {
-                    Text = $"{columnIndex} [{header}]",
-                    BorderStyle = BorderStyle.FixedSingle,
-                    AutoSize = false,
-                    Height = columnSelector.Height
-                };
-                foreach (var columnContent in csvFile.GetContent(columnIndex))
-                {
-                    label.Text += $"\n{columnContent}";
-                }
-                label.Click += (sender, e) =>
-                {
-                    var clicked = (Label)sender;
-                    var firstEnterCharIndex = clicked.Text.IndexOf('\n');
-                    if (firstEnterCharIndex < 0)
-                        MessageBox.Show("Can't get this header.\nPlease check the content of this file.", "WARNING", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    else
-                        txtColumnName.Text = $"{clicked.Text.Substring(0, firstEnterCharIndex)}";
-                };
-                label.Left = previousCoordinate + 2;
-                columnSelector.Controls.Add(label);
-                previousCoordinate += label.Width;
-                columnIndex++;
-            }
         }
 
         private void ChkHasHeaders_CheckedChanged(object sender, EventArgs e)
@@ -141,28 +82,6 @@ namespace Ofuscator
                 return null;
         }
 
-        private TextBox[] GetTextBoxesFor(Button sender)
-        {
-            TextBox[] result = null;
-
-            if (sender == btnSelectNamesFile)
-                    result = new TextBox[] { txtNamesFile, txtNameColumn };
-
-            else if(sender == btnSelectLastNamesFile)
-                    result = new TextBox[] { txtLastNamesFile, txtLastNameColumn };
-
-            else if (sender == btnSelectAddressFile)
-                    result = new TextBox[] { txtAddressFile, txtAddressColumn};
-
-            else if (sender == btnSelectNifsFile)
-                result = new TextBox[] { txtNIFsFile, txtNifsColumn};
-
-            else if (sender == btnSelectPhoneNumbersFile)
-                result = new TextBox[] { txtPhoneNumbersFile, txtPhoneNumberColumn};
-
-            return result;
-        }
-
         private void BtnClose_Click(object sender, EventArgs e)
         {
             this.Close();
@@ -172,16 +91,6 @@ namespace Ofuscator
         {
             dataGridCsvInformation.AllowUserToAddRows = false;
             dataSourceInformationBindingSource.DataSource = new List<CsvInformation> { };
-
-            dataSourceInformationBindingSource.AddingNew += (sender, e) =>
-            {
-                Trace.WriteLine("Adding item");
-            };
-
-            dataSourceInformationBindingSource.ListChanged += (sender, e) =>
-            {
-                Trace.WriteLine(e.ListChangedType.ToString());
-            };
         }
 
         private void BtnAddNew_Click(object sender, EventArgs e)
@@ -190,19 +99,21 @@ namespace Ofuscator
             SelectCsvFileForGridRow();
         }
 
-        private void GridCellContent_Click(object sender, DataGridViewCellEventArgs e)
+        private void GridCell_Click(object sender, DataGridViewCellMouseEventArgs e)
         {
             var senderGrid = (DataGridView)sender;
 
-            if (senderGrid.Columns[e.ColumnIndex] is DataGridViewButtonColumn && e.RowIndex >= 0)
-            {
+            if (e.ColumnIndex >= 0 && senderGrid.Columns[e.ColumnIndex] is DataGridViewButtonColumn && e.RowIndex >= 0)
                 SelectCsvFileForGridRow();
+            else if (e.RowIndex >= 0)
+            {
+                var csvInformation = (CsvInformation)dataSourceInformationBindingSource.Current;
+                SetupColumnSelection(csvInformation);
             }
         }
 
         private void SelectCsvFileForGridRow()
         {
-            columnSelector.Controls.Clear();
             var csvInformation = (CsvInformation)dataSourceInformationBindingSource.Current;
 
             if (!File.Exists(csvInformation.FileName))
@@ -213,13 +124,82 @@ namespace Ofuscator
             if (userResponseToChangeFile == DialogResult.Yes)
             {
                 var fileName = SelectFile(csvInformation.FileName);
-                if (fileName == null) return;
-                csvInformation.FileName = fileName;
-                csvInformation.ColumnName = string.Empty;
+                if (fileName != null)
+                {
+                    csvInformation.FileName = fileName;
+                    csvInformation.ColumnName = string.Empty;
+                }
+                else
+                    fileName = csvInformation.FileName;
+
+                if (string.IsNullOrEmpty(fileName))
+                {
+                    dataSourceInformationBindingSource.Remove(csvInformation);
+                    dataGridCsvInformation.Refresh();
+                    return;
+                }
             }
 
-            //SetupColumnSelection(fileName, txtCsvFileNameAndColumn[1]);
+            SetupColumnSelection(csvInformation);
+
             dataGridCsvInformation.Refresh();
+        }
+
+        private void SetupColumnSelection(CsvInformation csvInformation)
+        {
+            var csvFile = new CsvFile();
+            csvFile.ReadFile(csvInformation.FileName, 5);
+            csvFile.HasHeaders = chkHasHeaders.Checked = true;
+            var headers = csvFile.GetHeaders();
+
+            columnSelector.Controls.Clear();
+            columnSelector.Tag = csvInformation;
+
+            int columnIndex = 0;
+            var previousCoordinate = 0;
+            foreach (var header in headers)
+            {
+                var label = new Label
+                {
+                    Text = $"{columnIndex} [{header}]",
+                    BorderStyle = BorderStyle.FixedSingle,
+                    AutoSize = false,
+                    Height = columnSelector.Height
+                };
+
+                foreach (var columnContent in csvFile.GetContent(columnIndex))
+                    label.Text += $"\n{columnContent}";
+
+                label.Click += (sender, e) =>
+                {
+                    var clicked = (Label)sender;
+                    var firstEnterCharIndex = clicked.Text.IndexOf('\n');
+                    if (firstEnterCharIndex < 0)
+                        MessageBox.Show("Can't get this header.\nPlease check the content of this file.", "WARNING", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    else
+                    {
+                        var csvDataSource = (List<CsvInformation>)dataSourceInformationBindingSource.DataSource;
+                        var csvInfoBounded = csvDataSource.FirstOrDefault(x => x == (CsvInformation)columnSelector.Tag);
+                        if (chkHasHeaders.Checked)
+                        {
+                            var firstBracketIndex = clicked.Text.IndexOf('[');
+                            csvInformation.ColumnIndex = int.Parse(clicked.Text.Substring(0, firstBracketIndex));
+                            csvInformation.ColumnName = $"{clicked.Text.Substring(firstBracketIndex+1, firstEnterCharIndex-firstBracketIndex-2)}";
+                        }
+                        else
+                        {
+                            csvInformation.ColumnIndex = int.Parse(clicked.Text.Substring(0, firstEnterCharIndex));
+                            csvInformation.ColumnName = "";
+                        }
+                        dataGridCsvInformation.Refresh();
+                    }
+                };
+
+                label.Left = previousCoordinate + 2;
+                columnSelector.Controls.Add(label);
+                previousCoordinate += label.Width;
+                columnIndex++;
+            }
         }
     }
 }
