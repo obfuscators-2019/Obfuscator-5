@@ -48,6 +48,7 @@
   <ItemGroup>
     <Compile Include="Domain\CsvFile.cs" />
     <Compile Include="Domain\DniNie.cs" />
+    <Compile Include="Entities\DataSourceInformation.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -68,6 +69,7 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <None Include="Properties\DataSources\Ofuscator.Entities.DataSourceInformation.datasource" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

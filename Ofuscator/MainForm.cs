@@ -1,8 +1,10 @@
 ﻿using Ofuscator.Domain;
+using Ofuscator.Entities;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -17,6 +19,8 @@ namespace Ofuscator
         public MainForm()
         {
             InitializeComponent();
+
+            ConfigureDataGridBindingSource();
         }
 
         private void btnSelectFileAndColumn_Click(object sender, EventArgs e)
@@ -162,6 +166,60 @@ namespace Ofuscator
         private void BtnClose_Click(object sender, EventArgs e)
         {
             this.Close();
+        }
+
+        private void ConfigureDataGridBindingSource()
+        {
+            dataGridCsvInformation.AllowUserToAddRows = false;
+            dataSourceInformationBindingSource.DataSource = new List<CsvInformation> { };
+
+            dataSourceInformationBindingSource.AddingNew += (sender, e) =>
+            {
+                Trace.WriteLine("Adding item");
+            };
+
+            dataSourceInformationBindingSource.ListChanged += (sender, e) =>
+            {
+                Trace.WriteLine(e.ListChangedType.ToString());
+            };
+        }
+
+        private void BtnAddNew_Click(object sender, EventArgs e)
+        {
+            dataSourceInformationBindingSource.AddNew();
+            SelectCsvFileForGridRow();
+        }
+
+        private void GridCellContent_Click(object sender, DataGridViewCellEventArgs e)
+        {
+            var senderGrid = (DataGridView)sender;
+
+            if (senderGrid.Columns[e.ColumnIndex] is DataGridViewButtonColumn && e.RowIndex >= 0)
+            {
+                SelectCsvFileForGridRow();
+            }
+        }
+
+        private void SelectCsvFileForGridRow()
+        {
+            columnSelector.Controls.Clear();
+            var csvInformation = (CsvInformation)dataSourceInformationBindingSource.Current;
+
+            if (!File.Exists(csvInformation.FileName))
+                csvInformation.FileName = string.Empty;
+
+            DialogResult userResponseToChangeFile = ConfirmToSelectANewFile(csvInformation.FileName);
+
+            if (userResponseToChangeFile == DialogResult.Yes)
+            {
+                var fileName = SelectFile(csvInformation.FileName);
+                if (fileName == null) return;
+                csvInformation.FileName = fileName;
+                csvInformation.ColumnName = string.Empty;
+            }
+
+            //SetupColumnSelection(fileName, txtCsvFileNameAndColumn[1]);
+            dataGridCsvInformation.Refresh();
         }
     }
 }

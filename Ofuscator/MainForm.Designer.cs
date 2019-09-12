@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.label1 = new System.Windows.Forms.Label();
             this.txtNamesFile = new System.Windows.Forms.TextBox();
             this.btnSelectNamesFile = new System.Windows.Forms.Button();
@@ -61,8 +62,17 @@
             this.radioReplace = new System.Windows.Forms.RadioButton();
             this.radioAdd = new System.Windows.Forms.RadioButton();
             this.button1 = new System.Windows.Forms.Button();
+            this.btnSelect = new System.Windows.Forms.DataGridViewButtonColumn();
+            this.dataGridCsvInformation = new System.Windows.Forms.DataGridView();
+            this.btnAddNew = new System.Windows.Forms.Button();
+            this.fileNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.columnIndexDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.columnNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.dataSourceInformationBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridCsvInformation)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.dataSourceInformationBindingSource)).BeginInit();
             this.SuspendLayout();
             // 
             // label1
@@ -330,7 +340,7 @@
             // label9
             // 
             this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(12, 207);
+            this.label9.Location = new System.Drawing.Point(9, 323);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(115, 13);
             this.label9.TabIndex = 12;
@@ -338,7 +348,7 @@
             // 
             // txtSqlConnectionString
             // 
-            this.txtSqlConnectionString.Location = new System.Drawing.Point(15, 223);
+            this.txtSqlConnectionString.Location = new System.Drawing.Point(12, 339);
             this.txtSqlConnectionString.Name = "txtSqlConnectionString";
             this.txtSqlConnectionString.Size = new System.Drawing.Size(767, 20);
             this.txtSqlConnectionString.TabIndex = 2;
@@ -348,7 +358,7 @@
             // 
             this.groupBox2.Controls.Add(this.radioReplace);
             this.groupBox2.Controls.Add(this.radioAdd);
-            this.groupBox2.Location = new System.Drawing.Point(15, 278);
+            this.groupBox2.Location = new System.Drawing.Point(12, 394);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(176, 47);
             this.groupBox2.TabIndex = 4;
@@ -379,23 +389,88 @@
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(15, 249);
+            this.button1.Location = new System.Drawing.Point(12, 365);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(75, 23);
             this.button1.TabIndex = 3;
             this.button1.Text = "Connect";
             this.button1.UseVisualStyleBackColor = true;
             // 
+            // btnSelect
+            // 
+            this.btnSelect.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.ColumnHeader;
+            this.btnSelect.HeaderText = "SELECT";
+            this.btnSelect.Name = "btnSelect";
+            this.btnSelect.Text = "...";
+            this.btnSelect.ToolTipText = "Select a new file and/or column";
+            this.btnSelect.UseColumnTextForButtonValue = true;
+            this.btnSelect.Width = 54;
+            // 
+            // dataGridCsvInformation
+            // 
+            this.dataGridCsvInformation.AutoGenerateColumns = false;
+            this.dataGridCsvInformation.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dataGridCsvInformation.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.fileNameDataGridViewTextBoxColumn,
+            this.columnIndexDataGridViewTextBoxColumn,
+            this.columnNameDataGridViewTextBoxColumn,
+            this.btnSelect});
+            this.dataGridCsvInformation.DataSource = this.dataSourceInformationBindingSource;
+            this.dataGridCsvInformation.Location = new System.Drawing.Point(12, 201);
+            this.dataGridCsvInformation.Name = "dataGridCsvInformation";
+            this.dataGridCsvInformation.Size = new System.Drawing.Size(458, 119);
+            this.dataGridCsvInformation.TabIndex = 19;
+            this.dataGridCsvInformation.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.GridCellContent_Click);
+            // 
+            // btnAddNew
+            // 
+            this.btnAddNew.Location = new System.Drawing.Point(476, 297);
+            this.btnAddNew.Name = "btnAddNew";
+            this.btnAddNew.Size = new System.Drawing.Size(28, 23);
+            this.btnAddNew.TabIndex = 9;
+            this.btnAddNew.Text = "+";
+            this.btnAddNew.UseVisualStyleBackColor = true;
+            this.btnAddNew.Click += new System.EventHandler(this.BtnAddNew_Click);
+            // 
+            // fileNameDataGridViewTextBoxColumn
+            // 
+            this.fileNameDataGridViewTextBoxColumn.DataPropertyName = "FileName";
+            this.fileNameDataGridViewTextBoxColumn.HeaderText = "FileName";
+            this.fileNameDataGridViewTextBoxColumn.Name = "fileNameDataGridViewTextBoxColumn";
+            this.fileNameDataGridViewTextBoxColumn.Width = 160;
+            // 
+            // columnIndexDataGridViewTextBoxColumn
+            // 
+            this.columnIndexDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.ColumnHeader;
+            this.columnIndexDataGridViewTextBoxColumn.DataPropertyName = "ColumnIndex";
+            this.columnIndexDataGridViewTextBoxColumn.HeaderText = "ColumnIndex";
+            this.columnIndexDataGridViewTextBoxColumn.Name = "columnIndexDataGridViewTextBoxColumn";
+            this.columnIndexDataGridViewTextBoxColumn.ReadOnly = true;
+            this.columnIndexDataGridViewTextBoxColumn.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+            this.columnIndexDataGridViewTextBoxColumn.Width = 93;
+            // 
+            // columnNameDataGridViewTextBoxColumn
+            // 
+            this.columnNameDataGridViewTextBoxColumn.DataPropertyName = "ColumnName";
+            this.columnNameDataGridViewTextBoxColumn.HeaderText = "ColumnName";
+            this.columnNameDataGridViewTextBoxColumn.Name = "columnNameDataGridViewTextBoxColumn";
+            this.columnNameDataGridViewTextBoxColumn.ReadOnly = true;
+            // 
+            // dataSourceInformationBindingSource
+            // 
+            this.dataSourceInformationBindingSource.DataSource = typeof(Ofuscator.Entities.CsvInformation);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.CancelButton = this.btnClose;
             this.ClientSize = new System.Drawing.Size(800, 466);
+            this.Controls.Add(this.dataGridCsvInformation);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.label8);
             this.Controls.Add(this.chkHasHeaders);
+            this.Controls.Add(this.btnAddNew);
             this.Controls.Add(this.columnSelector);
             this.Controls.Add(this.btnClose);
             this.Controls.Add(this.txtSqlConnectionString);
@@ -407,6 +482,8 @@
             this.groupBox1.PerformLayout();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridCsvInformation)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.dataSourceInformationBindingSource)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -447,6 +524,13 @@
         private System.Windows.Forms.RadioButton radioReplace;
         private System.Windows.Forms.RadioButton radioAdd;
         private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.BindingSource dataSourceInformationBindingSource;
+        private System.Windows.Forms.DataGridViewButtonColumn btnSelect;
+        private System.Windows.Forms.DataGridViewTextBoxColumn columnNameDataGridViewTextBoxColumn;
+        private System.Windows.Forms.DataGridViewTextBoxColumn columnIndexDataGridViewTextBoxColumn;
+        private System.Windows.Forms.DataGridViewTextBoxColumn fileNameDataGridViewTextBoxColumn;
+        private System.Windows.Forms.DataGridView dataGridCsvInformation;
+        private System.Windows.Forms.Button btnAddNew;
     }
 }
 
