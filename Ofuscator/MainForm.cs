@@ -1,7 +1,9 @@
 ﻿using Obfuscator.Domain;
 using Obfuscator.Entities;
+using Obfuscator.UI;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -286,31 +288,25 @@ namespace Obfuscator
         {
             if (!EnoughInformationToCreateObfuscationOp()) return;
 
+            var obfuscationOps = GetObfuscationOps();
             var obfuscationOperation = CreateObfuscationInfo();
-            string infoToShow = ParseObfuscationInfoIntoReadable(obfuscationOperation);
+            obfuscationOps.Add(obfuscationOperation);
+            lbObfuscationOps.Refresh();
         }
 
-        private string ParseObfuscationInfoIntoReadable(Obfuscation obfuscationOperation)
+        private BindingList<ObfuscationParser> GetObfuscationOps()
         {
-            var readableText = string.Empty;
-
-            var csvFileName = Path.GetFileName(obfuscationOperation.Origin.FileName).ToUpper();
-            var columnIndex = obfuscationOperation.Origin.ColumnIndex;
-            var columnName = (obfuscationOperation.Origin.HasHeaders ? $" [{obfuscationOperation.Origin.ColumnName}]" : string.Empty).ToUpper();
-
-            var sqlDatabase = new SqlDatabase { ConnectionString = obfuscationOperation.Destination.ConnectionString };
-            string databaseName = sqlDatabase.GetDatabaseName();
-            string tableName = obfuscationOperation.Destination.TableName.ToUpper();
-            string fieldName = obfuscationOperation.Destination.ColumnInfo.Name.ToUpper();
-
-            readableText = $"File(\"{csvFileName}\".Column({columnIndex}{columnName}) => ";
-
-            return readableText;
+            if (lbObfuscationOps.DataSource == null)
+            {
+                lbObfuscationOps.DataSource = new BindingList<ObfuscationParser>();
+                lbObfuscationOps.DisplayMember = "ReadableContent";
+            }
+            return (BindingList<ObfuscationParser>)lbObfuscationOps.DataSource;
         }
 
-        private Obfuscation CreateObfuscationInfo()
+        private ObfuscationParser CreateObfuscationInfo()
         {
-            return new Obfuscation()
+            return new ObfuscationParser()
             {
                 Origin = (CsvInformation)gridCsvInformation.SelectedRows[0].DataBoundItem,
                 Destination = new DbInfo
