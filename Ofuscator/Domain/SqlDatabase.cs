@@ -1,17 +1,17 @@
-﻿using Ofuscator.Entities;
+﻿using Obfuscator.Entities;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 
-namespace Ofuscator.Domain
+namespace Obfuscator.Domain
 {
     public class SqlDatabase
     {
         public string ConnectionString { get; set; }
 
-        public List<TableInfo> Tables { get; set; }
+        public List<DbTableInfo> Tables { get; set; }
 
-        public List<TableInfo> RetrieveDatabaseInfo()
+        public List<DbTableInfo> RetrieveDatabaseInfo()
         {
             var connection = new SqlConnection(this.ConnectionString);
             connection.Open();
@@ -28,7 +28,7 @@ namespace Ofuscator.Domain
         {
             foreach (var table in this.Tables)
             {
-                table.Columns = new List<ColumnInfo>();
+                table.Columns = new List<DbColumnInfo>();
                 var command = connection.CreateCommand();
                 command.CommandType = System.Data.CommandType.Text;
                 command.CommandText = $"SELECT Column_Name, Ordinal_Position, Is_Nullable, Data_Type, Character_Maximum_Length" +
@@ -38,7 +38,7 @@ namespace Ofuscator.Domain
                 var reader = command.ExecuteReader();
                 while (reader.Read())
                 {
-                    table.Columns.Add(new ColumnInfo
+                    table.Columns.Add(new DbColumnInfo
                     {
                         Name = (string)reader["Column_Name"],
                         Index = (int)reader["Ordinal_Position"],
@@ -53,7 +53,7 @@ namespace Ofuscator.Domain
 
         private void RetrieveTableNames(SqlConnection connection)
         {
-            this.Tables = new List<TableInfo>();
+            this.Tables = new List<DbTableInfo>();
 
             var command = connection.CreateCommand();
             command.CommandType = System.Data.CommandType.Text;
@@ -61,13 +61,19 @@ namespace Ofuscator.Domain
             var reader = command.ExecuteReader();
             while (reader.Read())
             {
-                this.Tables.Add(new TableInfo
+                this.Tables.Add(new DbTableInfo
                 {
                     Name = reader[0].ToString(),
-                    Columns = new List<ColumnInfo>()
+                    Columns = new List<DbColumnInfo>()
                 });
             }
             reader.Close();
+        }
+
+        internal string GetDatabaseName()
+        {
+            var connection = new SqlConnection(this.ConnectionString);
+            return connection.Database;
         }
     }
 }

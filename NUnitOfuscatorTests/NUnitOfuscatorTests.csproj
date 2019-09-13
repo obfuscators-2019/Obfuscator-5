@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Ofuscator\Ofuscator.csproj" />
+    <ProjectReference Include="..\Ofuscator\Obfuscator.csproj" />
   </ItemGroup>
 
 </Project>

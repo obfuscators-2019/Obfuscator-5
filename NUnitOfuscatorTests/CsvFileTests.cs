@@ -29,7 +29,7 @@ namespace Tests
         {
             var expectedHeaders = _csvHeadersLine.Split(new char[] { ',' }).ToList();
 
-            var csvReader = new Ofuscator.Domain.CsvFile();
+            var csvReader = new Obfuscator.Domain.CsvFile();
             csvReader.CsvLines = _csvContent;
             csvReader.HasHeaders = true;
             var headers = csvReader.GetHeaders();
@@ -40,7 +40,7 @@ namespace Tests
         [Test]
         public void ReadingTheHeaderOfTheCSV_IfNoContent_ReturnsNull()
         {
-            var csvReader = new Ofuscator.Domain.CsvFile();
+            var csvReader = new Obfuscator.Domain.CsvFile();
             csvReader.CsvLines = null;
 
             var headers = csvReader.GetHeaders();
@@ -51,7 +51,7 @@ namespace Tests
         [Test]
         public void ReadingTheHeaderOfTheCSV_IfNoHeader_ReturnsNull()
         {
-            var csvReader = new Ofuscator.Domain.CsvFile();
+            var csvReader = new Obfuscator.Domain.CsvFile();
             csvReader.CsvLines = null;
             csvReader.HasHeaders = false;
             var headers = csvReader.GetHeaders();
@@ -65,7 +65,7 @@ namespace Tests
             var columnIndex = 1;
             var expectedResult = _csvContent.GetRange(1, _csvContent.Count - 1).Select(line => line.Split(new char[] { ',' })[columnIndex]);
 
-            var csvReader = new Ofuscator.Domain.CsvFile();
+            var csvReader = new Obfuscator.Domain.CsvFile();
             csvReader.CsvLines = _csvContent;
             csvReader.HasHeaders = true;
             var columnContent = csvReader.GetContent(columnIndex);

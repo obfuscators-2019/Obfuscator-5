@@ -1,6 +1,6 @@
-﻿namespace Ofuscator.Entities
+﻿namespace Obfuscator.Entities
 {
-    public class ColumnInfo
+    public class DbColumnInfo
     {
         public string Name { get; set; }
         public int Index { get; set; }

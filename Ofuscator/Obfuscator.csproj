@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{7B93EB83-64A7-4FE5-8E19-37EEABF1322F}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>Ofuscator</RootNamespace>
-    <AssemblyName>Ofuscator</AssemblyName>
+    <RootNamespace>Obfuscator</RootNamespace>
+    <AssemblyName>Obfuscator</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -51,10 +51,13 @@
   <ItemGroup>
     <Compile Include="Domain\CsvFile.cs" />
     <Compile Include="Domain\DniNie.cs" />
+    <Compile Include="Domain\OperationType.cs" />
     <Compile Include="Domain\SqlDatabase.cs" />
-    <Compile Include="Entities\ColumnInfo.cs" />
-    <Compile Include="Entities\DataSourceInformation.cs" />
-    <Compile Include="Entities\TableInfo.cs" />
+    <Compile Include="Entities\DbColumnInfo.cs" />
+    <Compile Include="Entities\CsvInformation.cs" />
+    <Compile Include="Entities\DbInfo.cs" />
+    <Compile Include="Entities\Obfuscation.cs" />
+    <Compile Include="Entities\DbTableInfo.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -74,6 +77,7 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <None Include="packages.config" />
     <None Include="Properties\DataSources\Ofuscator.Entities.DataSourceInformation.datasource" />

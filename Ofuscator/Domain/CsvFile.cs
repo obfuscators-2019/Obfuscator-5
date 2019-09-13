@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace Ofuscator.Domain
+namespace Obfuscator.Domain
 {
     public class CsvFile
     {

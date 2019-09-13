@@ -1,18 +1,13 @@
-﻿using Ofuscator.Domain;
-using Ofuscator.Entities;
+﻿using Obfuscator.Domain;
+using Obfuscator.Entities;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace Ofuscator
+namespace Obfuscator
 {
     public partial class MainForm : Form
     {
@@ -92,7 +87,7 @@ namespace Ofuscator
 
         private void ConfigureDataGridBindingSource()
         {
-            dataGridCsvInformation.AllowUserToAddRows = false;
+            gridCsvInformation.AllowUserToAddRows = false;
             dataSourceInformationBindingSource.DataSource = new List<CsvInformation> { };
         }
 
@@ -138,14 +133,14 @@ namespace Ofuscator
                 if (string.IsNullOrEmpty(fileName))
                 {
                     dataSourceInformationBindingSource.Remove(csvInformation);
-                    dataGridCsvInformation.Refresh();
+                    gridCsvInformation.Refresh();
                     return;
                 }
             }
 
             SetupColumnSelection(csvInformation);
 
-            dataGridCsvInformation.Refresh();
+            gridCsvInformation.Refresh();
         }
 
         private void SetupColumnSelection(CsvInformation csvInformation)
@@ -193,7 +188,7 @@ namespace Ofuscator
                     csvInfoBounded.ColumnIndex = int.Parse(clicked.Text.Substring(0, firstEnterCharIndex));
                     csvInfoBounded.ColumnName = "";
                 }
-                dataGridCsvInformation.Refresh();
+                gridCsvInformation.Refresh();
             }
         }
 
@@ -242,12 +237,13 @@ namespace Ofuscator
             try
             {
                 var sqlDb = new SqlDatabase { ConnectionString = txtSqlConnectionString.Text };
-                sqlDb.RetrieveDatabaseInfo();
+                var tables = sqlDb.RetrieveDatabaseInfo();
 
-                InitializeComboTableNames();
-                comboTableNames.DataSource = sqlDb.Tables;
-                comboTableNames.DisplayMember = "Name";
-                comboTableNames.SelectedIndexChanged += ComboTableNames_SelectedIndexChanged;
+                InitializeComboDatabaseTableNames();
+                comboDbTableNames.DataSource = tables;
+                comboDbTableNames.DisplayMember = "Name";
+                comboDbTableNames.SelectedIndexChanged += ComboTableNames_SelectedIndexChanged;
+                ComboTableNames_SelectedIndexChanged(null, null);
             }
             catch (Exception ex)
             {
@@ -255,35 +251,96 @@ namespace Ofuscator
                 Trace.WriteLine(exceptionInfo);
                 MessageBox.Show(exceptionInfo, "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
-                InitializeComboTableNames();
-                InitializeComboFields();
+                InitializeComboDatabaseTableNames();
+                InitializeComboDatabaseFields();
             }
         }
 
         private void ComboTableNames_SelectedIndexChanged(object sender, EventArgs e)
         {
-            InitializeComboFields();
-            var table = (TableInfo)comboTableNames.SelectedItem;
+            InitializeComboDatabaseFields();
+            var table = (DbTableInfo)comboDbTableNames.SelectedItem;
             if (table != null && table.Columns != null)
             {
-                comboField.DataSource = table.Columns;
-                comboField.DisplayMember = "Name";
+                comboDbField.DataSource = table.Columns;
+                comboDbField.DisplayMember = "Name";
             }
         }
 
-        private void InitializeComboFields()
+        private void InitializeComboDatabaseFields()
         {
-            comboField.DisplayMember = string.Empty;
-            comboField.DataSource = null;
-            comboField.Text = "Select field...";
+            comboDbField.DisplayMember = string.Empty;
+            comboDbField.DataSource = null;
+            comboDbField.Text = "Select field...";
         }
 
-        private void InitializeComboTableNames()
+        private void InitializeComboDatabaseTableNames()
         {
-            comboTableNames.SelectedIndexChanged -= ComboTableNames_SelectedIndexChanged;
-            comboTableNames.DisplayMember = string.Empty;
-            comboTableNames.DataSource = null;
-            comboTableNames.Text = "Select table...";
+            comboDbTableNames.SelectedIndexChanged -= ComboTableNames_SelectedIndexChanged;
+            comboDbTableNames.DisplayMember = string.Empty;
+            comboDbTableNames.DataSource = null;
+            comboDbTableNames.Text = "Select table...";
+        }
+
+        private void BtnCreateObuscationOperation_Click(object sender, EventArgs e)
+        {
+            if (!EnoughInformationToCreateObfuscationOp()) return;
+
+            var obfuscationOperation = CreateObfuscationInfo();
+            string infoToShow = ParseObfuscationInfoIntoReadable(obfuscationOperation);
+        }
+
+        private string ParseObfuscationInfoIntoReadable(Obfuscation obfuscationOperation)
+        {
+            var readableText = string.Empty;
+
+            var csvFileName = Path.GetFileName(obfuscationOperation.Origin.FileName).ToUpper();
+            var columnIndex = obfuscationOperation.Origin.ColumnIndex;
+            var columnName = (obfuscationOperation.Origin.HasHeaders ? $" [{obfuscationOperation.Origin.ColumnName}]" : string.Empty).ToUpper();
+
+            var sqlDatabase = new SqlDatabase { ConnectionString = obfuscationOperation.Destination.ConnectionString };
+            string databaseName = sqlDatabase.GetDatabaseName();
+            string tableName = obfuscationOperation.Destination.TableName.ToUpper();
+            string fieldName = obfuscationOperation.Destination.ColumnInfo.Name.ToUpper();
+
+            readableText = $"File(\"{csvFileName}\".Column({columnIndex}{columnName}) => ";
+
+            return readableText;
+        }
+
+        private Obfuscation CreateObfuscationInfo()
+        {
+            return new Obfuscation()
+            {
+                Origin = (CsvInformation)gridCsvInformation.SelectedRows[0].DataBoundItem,
+                Destination = new DbInfo
+                {
+                    ConnectionString = txtSqlConnectionString.Text,
+                    TableName = comboDbTableNames.Text,
+                    ColumnInfo = (DbColumnInfo)comboDbField.SelectedItem
+                },
+                Operation = (radioReplace.Checked ? OperationType.Replace : OperationType.Append)
+            };
+        }
+
+        private bool EnoughInformationToCreateObfuscationOp()
+        {
+            if (gridCsvInformation.Rows.Count == 0)
+            {
+                MessageBox.Show("There is no obfuscation data on the grid above\n(PICK FILE AND COLUMN)", "INFORMATION", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return false;
+            }
+            if (gridCsvInformation.SelectedRows.Count == 0)
+            {
+                MessageBox.Show("Select the obfuscation datasource on the grid above\n(SELECT A ROW)", "INFORMATION", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return false;
+            }
+            if (comboDbField.Items?.Count == 0 || comboDbField.SelectedIndex < 0)
+            {
+                MessageBox.Show("Select the database info - what will be obfuscated\n(CONNECT TO A DATABASE, SELECT TABLE AND COLUMN)", "INFORMATION", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return false;
+            }
+            return true;
         }
     }
 }

@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29306.81
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ofuscator", "Ofuscator\Ofuscator.csproj", "{7B93EB83-64A7-4FE5-8E19-37EEABF1322F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Obfuscator", "Ofuscator\Obfuscator.csproj", "{7B93EB83-64A7-4FE5-8E19-37EEABF1322F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NUnitOfuscatorTests", "NUnitOfuscatorTests\NUnitOfuscatorTests.csproj", "{49929D91-7CA6-4A91-BCAD-3F06EDD08C72}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NUnitOfuscatorTests", "NUnitOfuscatorTests\NUnitOfuscatorTests.csproj", "{49929D91-7CA6-4A91-BCAD-3F06EDD08C72}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
