@@ -338,5 +338,19 @@ namespace Obfuscator
             }
             return true;
         }
+
+        private void BtnClearOps_Click(object sender, EventArgs e)
+        {
+            lbObfuscationOps.DataSource = new BindingList<ObfuscationParser>();
+        }
+
+        private void LbObfuscationOps_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Delete && lbObfuscationOps.SelectedIndex >= 0)
+            {
+                var ops = GetObfuscationOps();
+                ops.Remove((ObfuscationParser)lbObfuscationOps.SelectedItem);
+            }
+        }
     }
 }
