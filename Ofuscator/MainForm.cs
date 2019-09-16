@@ -357,10 +357,23 @@ namespace Obfuscator
             var obfuscationOps = GetObfuscationOps();
             var sqlDb = new SqlDatabase { ConnectionString = txtSqlConnectionString.Text };
 
+            var operationIndex = 0;
+            var numberOfOperations = obfuscationOps.Count();
+            SetStatus("", operationIndex, numberOfOperations);
+
             foreach (var obfuscation in obfuscationOps)
             {
+                SetStatus($"Ofuscating {obfuscation.Destination.TableName}.{obfuscation.Destination.ColumnInfo.Name}", operationIndex++, numberOfOperations);
                 sqlDb.RunOperation(obfuscation);
             }
+            SetStatus($"DONE", 0, 0);
+        }
+
+        private void SetStatus(string text, int progress, int max)
+        {
+            toolStripStatusLabel1.Text = text;
+            toolStripProgressBar1.Maximum = max;
+            toolStripProgressBar1.Value = progress;
         }
     }
 }

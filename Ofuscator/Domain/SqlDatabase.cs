@@ -1,7 +1,9 @@
 ﻿using Obfuscator.Entities;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
 
 namespace Obfuscator.Domain
 {
@@ -33,7 +35,7 @@ namespace Obfuscator.Domain
                 command.CommandType = System.Data.CommandType.Text;
                 command.CommandText = $"SELECT Column_Name, Ordinal_Position, Is_Nullable, Data_Type, Character_Maximum_Length" +
                     $" FROM Information_Schema.Columns" +
-                    $" WHERE Table_Name = '{table.Name}'" +
+                    $" WHERE TABLE_SCHEMA + '.' + TABLE_NAME = '{table.Name}'" +
                     $" ORDER BY ORDINAL_POSITION";
                 var reader = command.ExecuteReader();
                 while (reader.Read())
@@ -57,13 +59,13 @@ namespace Obfuscator.Domain
 
             var command = connection.CreateCommand();
             command.CommandType = System.Data.CommandType.Text;
-            command.CommandText = "SELECT Table_Name FROM Information_Schema.Tables WHERE Table_Type = 'BASE TABLE'";
+            command.CommandText = "SELECT Table_Schema, Table_Name FROM Information_Schema.Tables WHERE Table_Type = 'BASE TABLE'";
             var reader = command.ExecuteReader();
             while (reader.Read())
             {
                 this.Tables.Add(new DbTableInfo
                 {
-                    Name = reader[0].ToString(),
+                    Name = $"{reader[0]}.{reader[1]}",
                     Columns = new List<DbColumnInfo>()
                 });
             }
@@ -79,12 +81,44 @@ namespace Obfuscator.Domain
         public void RunOperation(Obfuscation obfuscationOperation)
         {
             var data = GetSourceData(obfuscationOperation);
+            var dataSet = GetTableData(obfuscationOperation);
+            dataSet = OfuscateDataset(obfuscationOperation, data, dataSet);
+            PersistOfuscation(obfuscationOperation, dataSet);
+        }
 
-            foreach (var dataRow in data)
+        private void PersistOfuscation(Obfuscation obfuscationOperation, DataSet dataSet)
+        {
+            var sqlConnection = new SqlConnection(this.ConnectionString);
+            sqlConnection.Open();
+            SqlDataAdapter sqlDataAdapter = new SqlDataAdapter($"SELECT * FROM {obfuscationOperation.Destination.TableName}", sqlConnection);
+            new SqlCommandBuilder(sqlDataAdapter);
+            sqlDataAdapter.Update(dataSet);
+            sqlConnection.Close();
+        }
+
+        private DataSet OfuscateDataset(Obfuscation obfuscationOperation, IEnumerable<string> data, DataSet dataSet)
+        {
+            var dataListMaxIndex = data.Count() - 1;
+            var dataListIndex = 0;
+            foreach (var row in dataSet.Tables[0].Rows)
             {
-                string sqlQuery = BuildUpdateSentence(obfuscationOperation, dataRow);
+                var dataRow = (DataRow)row;
+                dataRow[obfuscationOperation.Destination.ColumnInfo.Name] = data.ElementAt(dataListIndex);
 
+                dataListIndex++;
+                if (dataListIndex > dataListMaxIndex) dataListIndex = 0;
             }
+
+            return dataSet;
+        }
+
+        private DataSet GetTableData(Obfuscation obfuscationOperation)
+        {
+            var sqlConnection = new SqlConnection(this.ConnectionString);
+            DataSet dataSet = new DataSet();
+            SqlDataAdapter sqlDataAdapter = new SqlDataAdapter($"SELECT * FROM {obfuscationOperation.Destination.TableName}", sqlConnection);
+            sqlDataAdapter.Fill(dataSet);
+            return dataSet;
         }
 
         private IEnumerable<string> GetSourceData(Obfuscation obfuscationOperation)
@@ -94,33 +128,5 @@ namespace Obfuscator.Domain
             var columnContent = csvFile.GetContent(obfuscationOperation.Origin.ColumnIndex);
             return columnContent;
         }
-
-        private string BuildUpdateSentence(Obfuscation obfuscationOperation, string dataRow)
-        {
-            var sqlQuery = $"UPDATE {obfuscationOperation.Destination.TableName} SET {obfuscationOperation.Destination.ColumnInfo.Name}=";
-            if (obfuscationOperation.Destination.ColumnInfo.DataType.Contains("char")
-                || obfuscationOperation.Destination.ColumnInfo.DataType.Contains("xml")
-                || obfuscationOperation.Destination.ColumnInfo.DataType.Contains("string"))
-                sqlQuery += $"'{dataRow}'";
-            else
-                sqlQuery += dataRow;
-
-            return sqlQuery;
-        }
     }
 }
-
-/*
- Select * From (Select Row_Number() Over (Order By FirstName) As RowNum, * From UserInformation) t2 Where RowNum = 3
- 
- ;WITH RowNbrs AS (
-    SELECT  ID
-            , ROW_NUMBER() OVER (ORDER BY ID) AS RowNbr
-    FROM    MyTab
-    WHERE   a = b
-)
-UPDATE  t 
-SET     t.MyNo = 123 +  r.RowNbr
-FROM    MyTab t
-        JOIN RowNbrs r ON t.ID = r.ID;
- */
