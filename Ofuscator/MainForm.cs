@@ -314,8 +314,7 @@ namespace Obfuscator
                     ConnectionString = txtSqlConnectionString.Text,
                     TableName = comboDbTableNames.Text,
                     ColumnInfo = (DbColumnInfo)comboDbField.SelectedItem
-                },
-                Operation = (radioReplace.Checked ? OperationType.Replace : OperationType.Add)
+                }
             };
         }
 

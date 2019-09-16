@@ -51,7 +51,6 @@
   <ItemGroup>
     <Compile Include="Domain\CsvFile.cs" />
     <Compile Include="Domain\DniNie.cs" />
-    <Compile Include="Domain\OperationType.cs" />
     <Compile Include="Domain\SqlDatabase.cs" />
     <Compile Include="Entities\DbColumnInfo.cs" />
     <Compile Include="Entities\CsvInformation.cs" />

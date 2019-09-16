@@ -70,10 +70,22 @@ namespace Obfuscator.Domain
             reader.Close();
         }
 
-        internal string GetDatabaseName()
+        public string GetDatabaseName()
         {
             var connection = new SqlConnection(this.ConnectionString);
             return connection.Database;
+        }
+
+        public void RunOperation(Obfuscation obfuscationOperation)
+        {
+            string sqlQuery = BuildSqlSentence(obfuscationOperation);
+        }
+
+        private string BuildSqlSentence(Obfuscation obfuscationOperation)
+        {
+            // UPDATE TEMPLATE: "UPDATE <table> SET [FIELD]=VALUE";
+
+            return "";
         }
     }
 }

@@ -29,20 +29,21 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             this.btnClose = new System.Windows.Forms.Button();
             this.columnSelector = new System.Windows.Forms.Panel();
             this.chkHasHeaders = new System.Windows.Forms.CheckBox();
             this.label8 = new System.Windows.Forms.Label();
             this.label9 = new System.Windows.Forms.Label();
             this.txtSqlConnectionString = new System.Windows.Forms.TextBox();
-            this.groupBox2 = new System.Windows.Forms.GroupBox();
-            this.radioReplace = new System.Windows.Forms.RadioButton();
-            this.radioAdd = new System.Windows.Forms.RadioButton();
             this.btnConnect = new System.Windows.Forms.Button();
             this.gridCsvInformation = new System.Windows.Forms.DataGridView();
+            this.fileNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.columnIndexDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.columnNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.btnSelect = new System.Windows.Forms.DataGridViewButtonColumn();
+            this.dataSourceInformationBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.btnAddNew = new System.Windows.Forms.Button();
             this.comboDbTableNames = new System.Windows.Forms.ComboBox();
             this.btnCreateObuscationOperation = new System.Windows.Forms.Button();
@@ -53,11 +54,6 @@
             this.btnOpenOps = new System.Windows.Forms.Button();
             this.btnSaveOps = new System.Windows.Forms.Button();
             this.btnRunObfuscationOps = new System.Windows.Forms.Button();
-            this.fileNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.columnIndexDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.columnNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.dataSourceInformationBindingSource = new System.Windows.Forms.BindingSource(this.components);
-            this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.gridCsvInformation)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataSourceInformationBindingSource)).BeginInit();
             this.SuspendLayout();
@@ -66,10 +62,10 @@
             // 
             this.btnClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnClose.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnClose.Location = new System.Drawing.Point(715, 583);
+            this.btnClose.Location = new System.Drawing.Point(715, 580);
             this.btnClose.Name = "btnClose";
             this.btnClose.Size = new System.Drawing.Size(73, 23);
-            this.btnClose.TabIndex = 5;
+            this.btnClose.TabIndex = 14;
             this.btnClose.Text = "CLOSE";
             this.btnClose.UseVisualStyleBackColor = true;
             this.btnClose.Click += new System.EventHandler(this.BtnClose_Click);
@@ -83,7 +79,7 @@
             this.columnSelector.Location = new System.Drawing.Point(476, 32);
             this.columnSelector.Name = "columnSelector";
             this.columnSelector.Size = new System.Drawing.Size(312, 175);
-            this.columnSelector.TabIndex = 1;
+            this.columnSelector.TabIndex = 3;
             // 
             // chkHasHeaders
             // 
@@ -91,7 +87,7 @@
             this.chkHasHeaders.Location = new System.Drawing.Point(475, 15);
             this.chkHasHeaders.Name = "chkHasHeaders";
             this.chkHasHeaders.Size = new System.Drawing.Size(86, 17);
-            this.chkHasHeaders.TabIndex = 17;
+            this.chkHasHeaders.TabIndex = 2;
             this.chkHasHeaders.Text = "Has headers";
             this.chkHasHeaders.UseVisualStyleBackColor = true;
             this.chkHasHeaders.CheckedChanged += new System.EventHandler(this.ChkHasHeaders_CheckedChanged);
@@ -118,51 +114,18 @@
             // 
             this.txtSqlConnectionString.Location = new System.Drawing.Point(12, 233);
             this.txtSqlConnectionString.Name = "txtSqlConnectionString";
-            this.txtSqlConnectionString.Size = new System.Drawing.Size(767, 20);
-            this.txtSqlConnectionString.TabIndex = 2;
+            this.txtSqlConnectionString.Size = new System.Drawing.Size(776, 20);
+            this.txtSqlConnectionString.TabIndex = 4;
             this.txtSqlConnectionString.Text = "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=testing;Integrated Security=Tr" +
     "ue;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationInte" +
     "nt=ReadWrite;MultiSubnetFailover=False";
-            // 
-            // groupBox2
-            // 
-            this.groupBox2.Controls.Add(this.radioReplace);
-            this.groupBox2.Controls.Add(this.radioAdd);
-            this.groupBox2.Location = new System.Drawing.Point(12, 288);
-            this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(176, 47);
-            this.groupBox2.TabIndex = 4;
-            this.groupBox2.TabStop = false;
-            this.groupBox2.Text = "Database update mode";
-            // 
-            // radioReplace
-            // 
-            this.radioReplace.AutoSize = true;
-            this.radioReplace.Checked = true;
-            this.radioReplace.Location = new System.Drawing.Point(6, 19);
-            this.radioReplace.Name = "radioReplace";
-            this.radioReplace.Size = new System.Drawing.Size(89, 17);
-            this.radioReplace.TabIndex = 0;
-            this.radioReplace.TabStop = true;
-            this.radioReplace.Text = "Replace data";
-            this.radioReplace.UseVisualStyleBackColor = true;
-            // 
-            // radioAdd
-            // 
-            this.radioAdd.AutoSize = true;
-            this.radioAdd.Location = new System.Drawing.Point(101, 19);
-            this.radioAdd.Name = "radioAdd";
-            this.radioAdd.Size = new System.Drawing.Size(68, 17);
-            this.radioAdd.TabIndex = 1;
-            this.radioAdd.Text = "Add data";
-            this.radioAdd.UseVisualStyleBackColor = true;
             // 
             // btnConnect
             // 
             this.btnConnect.Location = new System.Drawing.Point(12, 259);
             this.btnConnect.Name = "btnConnect";
             this.btnConnect.Size = new System.Drawing.Size(75, 23);
-            this.btnConnect.TabIndex = 3;
+            this.btnConnect.TabIndex = 5;
             this.btnConnect.Text = "Connect";
             this.btnConnect.UseVisualStyleBackColor = true;
             this.btnConnect.Click += new System.EventHandler(this.BtnConnect_Click);
@@ -180,8 +143,36 @@
             this.gridCsvInformation.Location = new System.Drawing.Point(12, 32);
             this.gridCsvInformation.Name = "gridCsvInformation";
             this.gridCsvInformation.Size = new System.Drawing.Size(458, 175);
-            this.gridCsvInformation.TabIndex = 19;
+            this.gridCsvInformation.TabIndex = 1;
             this.gridCsvInformation.CellMouseClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.GridCell_Click);
+            // 
+            // fileNameDataGridViewTextBoxColumn
+            // 
+            this.fileNameDataGridViewTextBoxColumn.DataPropertyName = "FileName";
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+            this.fileNameDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle1;
+            this.fileNameDataGridViewTextBoxColumn.HeaderText = "FileName";
+            this.fileNameDataGridViewTextBoxColumn.Name = "fileNameDataGridViewTextBoxColumn";
+            this.fileNameDataGridViewTextBoxColumn.Width = 160;
+            // 
+            // columnIndexDataGridViewTextBoxColumn
+            // 
+            this.columnIndexDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.ColumnHeader;
+            this.columnIndexDataGridViewTextBoxColumn.DataPropertyName = "ColumnIndex";
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            this.columnIndexDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle2;
+            this.columnIndexDataGridViewTextBoxColumn.HeaderText = "ColumnIndex";
+            this.columnIndexDataGridViewTextBoxColumn.Name = "columnIndexDataGridViewTextBoxColumn";
+            this.columnIndexDataGridViewTextBoxColumn.ReadOnly = true;
+            this.columnIndexDataGridViewTextBoxColumn.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+            this.columnIndexDataGridViewTextBoxColumn.Width = 93;
+            // 
+            // columnNameDataGridViewTextBoxColumn
+            // 
+            this.columnNameDataGridViewTextBoxColumn.DataPropertyName = "ColumnName";
+            this.columnNameDataGridViewTextBoxColumn.HeaderText = "ColumnName";
+            this.columnNameDataGridViewTextBoxColumn.Name = "columnNameDataGridViewTextBoxColumn";
+            this.columnNameDataGridViewTextBoxColumn.ReadOnly = true;
             // 
             // btnSelect
             // 
@@ -193,13 +184,17 @@
             this.btnSelect.UseColumnTextForButtonValue = true;
             this.btnSelect.Width = 54;
             // 
+            // dataSourceInformationBindingSource
+            // 
+            this.dataSourceInformationBindingSource.DataSource = typeof(Obfuscator.Entities.CsvInformation);
+            // 
             // btnAddNew
             // 
             this.btnAddNew.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnAddNew.Location = new System.Drawing.Point(13, 33);
             this.btnAddNew.Name = "btnAddNew";
             this.btnAddNew.Size = new System.Drawing.Size(40, 20);
-            this.btnAddNew.TabIndex = 9;
+            this.btnAddNew.TabIndex = 0;
             this.btnAddNew.Text = "ADD";
             this.btnAddNew.UseVisualStyleBackColor = true;
             this.btnAddNew.Click += new System.EventHandler(this.BtnAddNew_Click);
@@ -209,17 +204,17 @@
             this.comboDbTableNames.FormattingEnabled = true;
             this.comboDbTableNames.Location = new System.Drawing.Point(93, 261);
             this.comboDbTableNames.Name = "comboDbTableNames";
-            this.comboDbTableNames.Size = new System.Drawing.Size(448, 21);
-            this.comboDbTableNames.TabIndex = 20;
+            this.comboDbTableNames.Size = new System.Drawing.Size(422, 21);
+            this.comboDbTableNames.TabIndex = 6;
             this.comboDbTableNames.Text = "Select table...";
             // 
             // btnCreateObuscationOperation
             // 
             this.btnCreateObuscationOperation.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnCreateObuscationOperation.Location = new System.Drawing.Point(194, 294);
+            this.btnCreateObuscationOperation.Location = new System.Drawing.Point(759, 260);
             this.btnCreateObuscationOperation.Name = "btnCreateObuscationOperation";
-            this.btnCreateObuscationOperation.Size = new System.Drawing.Size(29, 41);
-            this.btnCreateObuscationOperation.TabIndex = 21;
+            this.btnCreateObuscationOperation.Size = new System.Drawing.Size(29, 23);
+            this.btnCreateObuscationOperation.TabIndex = 8;
             this.btnCreateObuscationOperation.Text = "=>";
             this.btnCreateObuscationOperation.UseVisualStyleBackColor = true;
             this.btnCreateObuscationOperation.Click += new System.EventHandler(this.BtnCreateObuscationOperation_Click);
@@ -227,10 +222,10 @@
             // comboDbField
             // 
             this.comboDbField.FormattingEnabled = true;
-            this.comboDbField.Location = new System.Drawing.Point(547, 261);
+            this.comboDbField.Location = new System.Drawing.Point(521, 261);
             this.comboDbField.Name = "comboDbField";
             this.comboDbField.Size = new System.Drawing.Size(232, 21);
-            this.comboDbField.TabIndex = 22;
+            this.comboDbField.TabIndex = 7;
             this.comboDbField.Text = "Select field...";
             // 
             // label1
@@ -250,20 +245,20 @@
             this.lbObfuscationOps.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lbObfuscationOps.FormattingEnabled = true;
             this.lbObfuscationOps.ItemHeight = 15;
-            this.lbObfuscationOps.Location = new System.Drawing.Point(12, 342);
+            this.lbObfuscationOps.Location = new System.Drawing.Point(12, 297);
             this.lbObfuscationOps.Name = "lbObfuscationOps";
-            this.lbObfuscationOps.Size = new System.Drawing.Size(776, 229);
-            this.lbObfuscationOps.TabIndex = 23;
+            this.lbObfuscationOps.Size = new System.Drawing.Size(776, 259);
+            this.lbObfuscationOps.TabIndex = 9;
             this.lbObfuscationOps.KeyDown += new System.Windows.Forms.KeyEventHandler(this.LbObfuscationOps_KeyDown);
             // 
             // btnClearOps
             // 
             this.btnClearOps.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnClearOps.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnClearOps.Location = new System.Drawing.Point(88, 583);
+            this.btnClearOps.Location = new System.Drawing.Point(88, 580);
             this.btnClearOps.Name = "btnClearOps";
             this.btnClearOps.Size = new System.Drawing.Size(47, 23);
-            this.btnClearOps.TabIndex = 24;
+            this.btnClearOps.TabIndex = 11;
             this.btnClearOps.Text = "Clear";
             this.btnClearOps.UseVisualStyleBackColor = true;
             this.btnClearOps.Click += new System.EventHandler(this.BtnClearOps_Click);
@@ -272,10 +267,10 @@
             // 
             this.btnOpenOps.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnOpenOps.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnOpenOps.Location = new System.Drawing.Point(141, 583);
+            this.btnOpenOps.Location = new System.Drawing.Point(141, 580);
             this.btnOpenOps.Name = "btnOpenOps";
             this.btnOpenOps.Size = new System.Drawing.Size(47, 23);
-            this.btnOpenOps.TabIndex = 25;
+            this.btnOpenOps.TabIndex = 12;
             this.btnOpenOps.Text = "Load";
             this.btnOpenOps.UseVisualStyleBackColor = true;
             // 
@@ -283,10 +278,10 @@
             // 
             this.btnSaveOps.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnSaveOps.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnSaveOps.Location = new System.Drawing.Point(194, 583);
+            this.btnSaveOps.Location = new System.Drawing.Point(194, 580);
             this.btnSaveOps.Name = "btnSaveOps";
             this.btnSaveOps.Size = new System.Drawing.Size(47, 23);
-            this.btnSaveOps.TabIndex = 26;
+            this.btnSaveOps.TabIndex = 13;
             this.btnSaveOps.Text = "Save";
             this.btnSaveOps.UseVisualStyleBackColor = true;
             // 
@@ -296,50 +291,18 @@
             this.btnRunObfuscationOps.BackColor = System.Drawing.Color.SandyBrown;
             this.btnRunObfuscationOps.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.btnRunObfuscationOps.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnRunObfuscationOps.Location = new System.Drawing.Point(12, 583);
+            this.btnRunObfuscationOps.Location = new System.Drawing.Point(12, 580);
             this.btnRunObfuscationOps.Name = "btnRunObfuscationOps";
             this.btnRunObfuscationOps.Size = new System.Drawing.Size(47, 23);
-            this.btnRunObfuscationOps.TabIndex = 27;
+            this.btnRunObfuscationOps.TabIndex = 10;
             this.btnRunObfuscationOps.Text = "RUN";
             this.btnRunObfuscationOps.UseVisualStyleBackColor = false;
-            // 
-            // fileNameDataGridViewTextBoxColumn
-            // 
-            this.fileNameDataGridViewTextBoxColumn.DataPropertyName = "FileName";
-            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-            this.fileNameDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle3;
-            this.fileNameDataGridViewTextBoxColumn.HeaderText = "FileName";
-            this.fileNameDataGridViewTextBoxColumn.Name = "fileNameDataGridViewTextBoxColumn";
-            this.fileNameDataGridViewTextBoxColumn.Width = 160;
-            // 
-            // columnIndexDataGridViewTextBoxColumn
-            // 
-            this.columnIndexDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.ColumnHeader;
-            this.columnIndexDataGridViewTextBoxColumn.DataPropertyName = "ColumnIndex";
-            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            this.columnIndexDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle4;
-            this.columnIndexDataGridViewTextBoxColumn.HeaderText = "ColumnIndex";
-            this.columnIndexDataGridViewTextBoxColumn.Name = "columnIndexDataGridViewTextBoxColumn";
-            this.columnIndexDataGridViewTextBoxColumn.ReadOnly = true;
-            this.columnIndexDataGridViewTextBoxColumn.Resizable = System.Windows.Forms.DataGridViewTriState.False;
-            this.columnIndexDataGridViewTextBoxColumn.Width = 93;
-            // 
-            // columnNameDataGridViewTextBoxColumn
-            // 
-            this.columnNameDataGridViewTextBoxColumn.DataPropertyName = "ColumnName";
-            this.columnNameDataGridViewTextBoxColumn.HeaderText = "ColumnName";
-            this.columnNameDataGridViewTextBoxColumn.Name = "columnNameDataGridViewTextBoxColumn";
-            this.columnNameDataGridViewTextBoxColumn.ReadOnly = true;
-            // 
-            // dataSourceInformationBindingSource
-            // 
-            this.dataSourceInformationBindingSource.DataSource = typeof(Obfuscator.Entities.CsvInformation);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 618);
+            this.ClientSize = new System.Drawing.Size(800, 615);
             this.Controls.Add(this.btnRunObfuscationOps);
             this.Controls.Add(this.btnSaveOps);
             this.Controls.Add(this.btnOpenOps);
@@ -351,7 +314,6 @@
             this.Controls.Add(this.btnAddNew);
             this.Controls.Add(this.gridCsvInformation);
             this.Controls.Add(this.btnConnect);
-            this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.label8);
             this.Controls.Add(this.chkHasHeaders);
@@ -361,8 +323,6 @@
             this.Controls.Add(this.label9);
             this.Name = "MainForm";
             this.Text = "OFUSCATOR";
-            this.groupBox2.ResumeLayout(false);
-            this.groupBox2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.gridCsvInformation)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataSourceInformationBindingSource)).EndInit();
             this.ResumeLayout(false);
@@ -377,9 +337,6 @@
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.TextBox txtSqlConnectionString;
-        private System.Windows.Forms.GroupBox groupBox2;
-        private System.Windows.Forms.RadioButton radioReplace;
-        private System.Windows.Forms.RadioButton radioAdd;
         private System.Windows.Forms.Button btnConnect;
         private System.Windows.Forms.BindingSource dataSourceInformationBindingSource;
         private System.Windows.Forms.DataGridView gridCsvInformation;

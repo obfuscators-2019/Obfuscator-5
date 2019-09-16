@@ -7,6 +7,5 @@ namespace Obfuscator.Entities
     {
         public CsvInformation Origin { get; set; }
         public DbInfo Destination { get; set; }
-        public OperationType Operation { get; set; }
     }
 }
