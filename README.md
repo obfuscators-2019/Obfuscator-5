@@ -1,2 +1,2 @@
-# Ofuscator
-Ofuscates code on SQL by using selected columns from CSV files
+# Obfuscator
+Obfuscates code on SQL by using selected columns from CSV files
