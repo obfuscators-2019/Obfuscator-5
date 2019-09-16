@@ -78,14 +78,49 @@ namespace Obfuscator.Domain
 
         public void RunOperation(Obfuscation obfuscationOperation)
         {
-            string sqlQuery = BuildSqlSentence(obfuscationOperation);
+            var data = GetSourceData(obfuscationOperation);
+
+            foreach (var dataRow in data)
+            {
+                string sqlQuery = BuildUpdateSentence(obfuscationOperation, dataRow);
+
+            }
         }
 
-        private string BuildSqlSentence(Obfuscation obfuscationOperation)
+        private IEnumerable<string> GetSourceData(Obfuscation obfuscationOperation)
         {
-            // UPDATE TEMPLATE: "UPDATE <table> SET [FIELD]=VALUE";
+            var csvFile = new CsvFile();
+            csvFile.ReadFile(obfuscationOperation.Origin.FileName);
+            var columnContent = csvFile.GetContent(obfuscationOperation.Origin.ColumnIndex);
+            return columnContent;
+        }
 
-            return "";
+        private string BuildUpdateSentence(Obfuscation obfuscationOperation, string dataRow)
+        {
+            var sqlQuery = $"UPDATE {obfuscationOperation.Destination.TableName} SET {obfuscationOperation.Destination.ColumnInfo.Name}=";
+            if (obfuscationOperation.Destination.ColumnInfo.DataType.Contains("char")
+                || obfuscationOperation.Destination.ColumnInfo.DataType.Contains("xml")
+                || obfuscationOperation.Destination.ColumnInfo.DataType.Contains("string"))
+                sqlQuery += $"'{dataRow}'";
+            else
+                sqlQuery += dataRow;
+
+            return sqlQuery;
         }
     }
 }
+
+/*
+ Select * From (Select Row_Number() Over (Order By FirstName) As RowNum, * From UserInformation) t2 Where RowNum = 3
+ 
+ ;WITH RowNbrs AS (
+    SELECT  ID
+            , ROW_NUMBER() OVER (ORDER BY ID) AS RowNbr
+    FROM    MyTab
+    WHERE   a = b
+)
+UPDATE  t 
+SET     t.MyNo = 123 +  r.RowNbr
+FROM    MyTab t
+        JOIN RowNbrs r ON t.ID = r.ID;
+ */

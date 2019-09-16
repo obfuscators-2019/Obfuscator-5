@@ -297,6 +297,7 @@
             this.btnRunObfuscationOps.TabIndex = 10;
             this.btnRunObfuscationOps.Text = "RUN";
             this.btnRunObfuscationOps.UseVisualStyleBackColor = false;
+            this.btnRunObfuscationOps.Click += new System.EventHandler(this.BtnRunObfuscationOps_Click);
             // 
             // MainForm
             // 

@@ -351,5 +351,16 @@ namespace Obfuscator
                 ops.Remove((ObfuscationParser)lbObfuscationOps.SelectedItem);
             }
         }
+
+        private void BtnRunObfuscationOps_Click(object sender, EventArgs e)
+        {
+            var obfuscationOps = GetObfuscationOps();
+            var sqlDb = new SqlDatabase { ConnectionString = txtSqlConnectionString.Text };
+
+            foreach (var obfuscation in obfuscationOps)
+            {
+                sqlDb.RunOperation(obfuscation);
+            }
+        }
     }
 }
