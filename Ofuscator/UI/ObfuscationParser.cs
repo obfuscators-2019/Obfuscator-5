@@ -26,7 +26,7 @@ namespace Obfuscator.UI
                 string tableName = Destination.TableName.ToUpper();
                 string fieldName = Destination.ColumnInfo.Name.ToUpper();
 
-                readableText = $"File(\"{csvFileName}\").Column({columnIndex}{columnName}) => Db({databaseName}).Table({tableName}).Field({fieldName})";
+                readableText = $"File(\"{csvFileName}\").Column({columnIndex}{columnName}) =>{this.Operation.ToString().ToUpper()}=> Db({databaseName}).Table({tableName}).Field({fieldName})";
 
                 return readableText;
 

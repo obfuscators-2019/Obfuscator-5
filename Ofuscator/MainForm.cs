@@ -315,7 +315,7 @@ namespace Obfuscator
                     TableName = comboDbTableNames.Text,
                     ColumnInfo = (DbColumnInfo)comboDbField.SelectedItem
                 },
-                Operation = (radioReplace.Checked ? OperationType.Replace : OperationType.Append)
+                Operation = (radioReplace.Checked ? OperationType.Replace : OperationType.Add)
             };
         }
 

@@ -9,6 +9,6 @@ namespace Obfuscator.Domain
     public enum OperationType
     {
         Replace,
-        Append
+        Add
     }
 }
