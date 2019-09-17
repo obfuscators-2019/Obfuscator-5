@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
@@ -374,6 +375,19 @@ namespace Obfuscator
             toolStripStatusLabel1.Text = text;
             toolStripProgressBar1.Maximum = max;
             toolStripProgressBar1.Value = progress;
+        }
+
+        private void BtnSaveOps_Click(object sender, EventArgs e)
+        {
+            var saveDialog = new SaveFileDialog();
+            var dialogResult = saveDialog.ShowDialog();
+            if (dialogResult == DialogResult.Cancel) return;
+
+            var obfuscationOps = GetObfuscationOps();
+            var serializer = new FileSerializer();
+            serializer.SaveObfuscationOperations(obfuscationOps, saveDialog.FileName);
+
+            toolStripStatusLabel1.Text = $"FILE {Path.GetFileName(saveDialog.FileName)} SAVED at {DateTime.Now.ToShortTimeString()}";
         }
     }
 }

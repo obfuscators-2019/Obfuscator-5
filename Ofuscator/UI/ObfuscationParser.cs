@@ -1,4 +1,5 @@
-﻿using Obfuscator.Domain;
+﻿using Newtonsoft.Json;
+using Obfuscator.Domain;
 using Obfuscator.Entities;
 using System;
 using System.Collections.Generic;
@@ -11,6 +12,7 @@ namespace Obfuscator.UI
 {
     public class ObfuscationParser : Obfuscation
     {
+        [JsonIgnore]
         public string ReadableContent
         {
             get
@@ -29,7 +31,6 @@ namespace Obfuscator.UI
                 readableText = $"File(\"{csvFileName}\").Column({columnIndex}{columnName}) =>REPLACES=> Db({databaseName}).Table({tableName}).Field({fieldName})";
 
                 return readableText;
-
             }
         }
     }
