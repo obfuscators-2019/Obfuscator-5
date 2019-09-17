@@ -3,6 +3,7 @@ using Obfuscator.Entities;
 using Obfuscator.UI;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
@@ -295,14 +296,18 @@ namespace Obfuscator
             lbObfuscationOps.Refresh();
         }
 
-        private BindingList<ObfuscationParser> GetObfuscationOps()
+        private List<ObfuscationParser> GetObfuscationOps()
         {
             if (lbObfuscationOps.DataSource == null)
-            {
-                lbObfuscationOps.DataSource = new BindingList<ObfuscationParser>();
-                lbObfuscationOps.DisplayMember = "ReadableContent";
-            }
-            return (BindingList<ObfuscationParser>)lbObfuscationOps.DataSource;
+                SetObfuscationOps(new List<ObfuscationParser>());
+
+            return (List<ObfuscationParser>)lbObfuscationOps.DataSource;
+        }
+
+        private void SetObfuscationOps(List<ObfuscationParser> obfuscationOps)
+        {
+            lbObfuscationOps.DataSource = obfuscationOps; 
+            lbObfuscationOps.DisplayMember = "ReadableContent";
         }
 
         private ObfuscationParser CreateObfuscationInfo()
@@ -341,7 +346,8 @@ namespace Obfuscator
 
         private void BtnClearOps_Click(object sender, EventArgs e)
         {
-            lbObfuscationOps.DataSource = new BindingList<ObfuscationParser>();
+            if (DialogResult.Yes == MessageBox.Show("Are you sure?", "PLEASE CONFIRM", MessageBoxButtons.YesNo, MessageBoxIcon.Question))
+                lbObfuscationOps.DataSource = new List<ObfuscationParser>();
         }
 
         private void LbObfuscationOps_KeyDown(object sender, KeyEventArgs e)
@@ -385,9 +391,22 @@ namespace Obfuscator
 
             var obfuscationOps = GetObfuscationOps();
             var serializer = new FileSerializer();
-            serializer.SaveObfuscationOperations(obfuscationOps, saveDialog.FileName);
+            serializer.SaveObfuscationOps(obfuscationOps, saveDialog.FileName);
 
             toolStripStatusLabel1.Text = $"FILE {Path.GetFileName(saveDialog.FileName)} SAVED at {DateTime.Now.ToShortTimeString()}";
+        }
+
+        private void BtnOpenOps_Click(object sender, EventArgs e)
+        {
+            var loadDialog = new OpenFileDialog();
+            var dialogResult = loadDialog.ShowDialog();
+            if (dialogResult == DialogResult.Cancel) return;
+
+            var serializer = new FileSerializer();
+            var obfuscationOps = serializer.LoadObfuscationOps(loadDialog.FileName);
+            SetObfuscationOps(obfuscationOps.Select(x => new ObfuscationParser(x)).ToList());
+
+            toolStripStatusLabel1.Text = $"FILE: {Path.GetFileName(loadDialog.FileName)}";
         }
     }
 }

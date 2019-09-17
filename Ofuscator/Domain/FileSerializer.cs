@@ -1,22 +1,28 @@
 ﻿using Newtonsoft.Json;
 using Obfuscator.Entities;
-using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Obfuscator.Domain
 {
     public class FileSerializer
     {
-        public void SaveObfuscationOperations(IEnumerable<Obfuscation> obfuscationOperations, string fileName)
+        public void SaveObfuscationOps(IEnumerable<Obfuscation> obfuscationOps, string fileName)
         {
-            var jsonContent = JsonConvert.SerializeObject(obfuscationOperations);
+            var jsonContent = JsonConvert.SerializeObject(obfuscationOps);
             var textWriter = new StreamWriter(fileName);
             textWriter.WriteLine(jsonContent);
             textWriter.Close();
+        }
+
+        public IEnumerable<Obfuscation> LoadObfuscationOps(string fileName)
+        {
+            var textReader = new StreamReader(fileName);
+            var jsonContent = textReader.ReadToEnd();
+            textReader.Close();
+            var obfuscationOps = JsonConvert.DeserializeObject<List<Obfuscation>>(jsonContent);
+            return obfuscationOps;
         }
     }
 }

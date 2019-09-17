@@ -283,6 +283,7 @@
             this.btnOpenOps.TabIndex = 12;
             this.btnOpenOps.Text = "Load";
             this.btnOpenOps.UseVisualStyleBackColor = true;
+            this.btnOpenOps.Click += new System.EventHandler(this.BtnOpenOps_Click);
             // 
             // btnSaveOps
             // 

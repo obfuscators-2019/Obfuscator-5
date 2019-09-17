@@ -12,6 +12,14 @@ namespace Obfuscator.UI
 {
     public class ObfuscationParser : Obfuscation
     {
+        public ObfuscationParser() {}
+
+        public ObfuscationParser(Obfuscation obfuscationOperation)
+        {
+            this.Origin = obfuscationOperation.Origin;
+            this.Destination = obfuscationOperation.Destination;
+        }
+
         [JsonIgnore]
         public string ReadableContent
         {
