@@ -296,17 +296,17 @@ namespace Obfuscator
             lbObfuscationOps.Refresh();
         }
 
-        private List<ObfuscationParser> GetObfuscationOps()
+        private BindingList<ObfuscationParser> GetObfuscationOps()
         {
             if (lbObfuscationOps.DataSource == null)
-                SetObfuscationOps(new List<ObfuscationParser>());
+                SetObfuscationOps(new BindingList<ObfuscationParser>());
 
-            return (List<ObfuscationParser>)lbObfuscationOps.DataSource;
+            return (BindingList<ObfuscationParser>)lbObfuscationOps.DataSource;
         }
 
-        private void SetObfuscationOps(List<ObfuscationParser> obfuscationOps)
+        private void SetObfuscationOps(IEnumerable<ObfuscationParser> obfuscationOps)
         {
-            lbObfuscationOps.DataSource = obfuscationOps; 
+            lbObfuscationOps.DataSource = new BindingList<ObfuscationParser>(obfuscationOps.ToList()); 
             lbObfuscationOps.DisplayMember = "ReadableContent";
         }
 
@@ -361,26 +361,32 @@ namespace Obfuscator
 
         private void BtnRunObfuscationOps_Click(object sender, EventArgs e)
         {
-            var obfuscationOps = GetObfuscationOps();
-            var sqlDb = new SqlDatabase { ConnectionString = txtSqlConnectionString.Text };
+            SetStatus("", 0, 0);
 
-            var operationIndex = 0;
-            var numberOfOperations = obfuscationOps.Count();
-            SetStatus("", operationIndex, numberOfOperations);
-
-            foreach (var obfuscation in obfuscationOps)
+            var sqlDb = new SqlDatabase();
+            sqlDb.StatusChanged += (callbackInfo, callbackArgs) =>
             {
-                SetStatus($"Ofuscating {obfuscation.Destination.TableName}.{obfuscation.Destination.ColumnInfo.Name}", operationIndex++, numberOfOperations);
-                sqlDb.RunOperation(obfuscation);
-            }
+                var statusInformation = (SqlDatabase.StatusInformation)callbackInfo;
+                SetStatus(statusInformation.Message, statusInformation.Progress, statusInformation.Total);
+            };
+
+            var obfuscationOps = GetObfuscationOps();
+            sqlDb.RunOperations(obfuscationOps);
+
             SetStatus($"DONE", 0, 0);
         }
 
         private void SetStatus(string text, int progress, int max)
         {
-            toolStripStatusLabel1.Text = text;
-            toolStripProgressBar1.Maximum = max;
-            toolStripProgressBar1.Value = progress;
+            if (this.InvokeRequired)
+            {
+                this.Invoke((MethodInvoker)delegate
+               {
+                   toolStripStatusLabel1.Text = text;
+                   toolStripProgressBar1.Maximum = max;
+                   toolStripProgressBar1.Value = progress;
+               });
+            }
         }
 
         private void BtnSaveOps_Click(object sender, EventArgs e)
@@ -404,7 +410,7 @@ namespace Obfuscator
 
             var serializer = new FileSerializer();
             var obfuscationOps = serializer.LoadObfuscationOps(loadDialog.FileName);
-            SetObfuscationOps(obfuscationOps.Select(x => new ObfuscationParser(x)).ToList());
+            SetObfuscationOps(obfuscationOps.Select(x => new ObfuscationParser(x)));
 
             toolStripStatusLabel1.Text = $"FILE: {Path.GetFileName(loadDialog.FileName)}";
         }

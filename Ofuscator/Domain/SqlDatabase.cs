@@ -3,12 +3,23 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Obfuscator.Domain
 {
     public class SqlDatabase
     {
+        public EventHandler StatusChanged;
+
+        public struct StatusInformation
+        {
+            public string Message { get; set; }
+            public int Progress { get; set; }
+            public int Total { get; set; }
+        }
+
         public string ConnectionString { get; set; }
 
         public List<DbTableInfo> Tables { get; set; }
@@ -86,13 +97,50 @@ namespace Obfuscator.Domain
             PersistOfuscation(obfuscationOperation, dataSet);
         }
 
+        public void RunOperations(IEnumerable<Obfuscation> obfuscationOps)
+        {
+            var operationIndex = 0;
+            var numberOfOperations = obfuscationOps.Count();
+
+            foreach (var obfuscation in obfuscationOps)
+            {
+                ReportStatusAsync(new StatusInformation
+                {
+                    Message = $"Ofuscating {obfuscation.Destination.TableName}.{obfuscation.Destination.ColumnInfo.Name}",
+                    Progress = operationIndex++,
+                    Total = numberOfOperations
+                });
+                RunOperation(obfuscation);
+            }
+        }
+
+        private void ReportStatusAsync(StatusInformation statusInformation)
+        {
+            var task = new Task(() =>
+            {
+                StatusChanged(statusInformation, null);
+            });
+            task.Start();
+        }
+
         private void PersistOfuscation(Obfuscation obfuscationOperation, DataSet dataSet)
         {
-            var sqlConnection = new SqlConnection(this.ConnectionString);
+            var sqlConnection = new SqlConnection(obfuscationOperation.Destination.ConnectionString);
             sqlConnection.Open();
             SqlDataAdapter sqlDataAdapter = new SqlDataAdapter($"SELECT * FROM {obfuscationOperation.Destination.TableName}", sqlConnection);
-            new SqlCommandBuilder(sqlDataAdapter);
+
+            var valueParameter = (obfuscationOperation.Destination.ColumnInfo.DataType.ToLower().Contains("char") || true ? "'@value'" : "@value");
+            string updateCommandText = $"UPDATE {obfuscationOperation.Destination.TableName}" +
+                $" SET {obfuscationOperation.Destination.ColumnInfo.Name}={valueParameter}";
+
+            sqlDataAdapter.UpdateCommand = new SqlCommand();
+
+            var builder = new SqlCommandBuilder(sqlDataAdapter);
+            var updateCommand = builder.GetUpdateCommand();
+            Trace.WriteLine(updateCommand.Parameters);
+
             sqlDataAdapter.Update(dataSet);
+
             sqlConnection.Close();
         }
 
@@ -114,7 +162,7 @@ namespace Obfuscator.Domain
 
         private DataSet GetTableData(Obfuscation obfuscationOperation)
         {
-            var sqlConnection = new SqlConnection(this.ConnectionString);
+            var sqlConnection = new SqlConnection(obfuscationOperation.Destination.ConnectionString);
             DataSet dataSet = new DataSet();
             SqlDataAdapter sqlDataAdapter = new SqlDataAdapter($"SELECT * FROM {obfuscationOperation.Destination.TableName}", sqlConnection);
             sqlDataAdapter.Fill(dataSet);
