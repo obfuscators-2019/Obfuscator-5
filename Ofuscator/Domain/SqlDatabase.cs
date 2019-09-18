@@ -103,17 +103,18 @@ namespace Obfuscator.Domain
 
             command = connection.CreateCommand();
             command.CommandType = CommandType.Text;
-            command.CommandText = $"SELECT tc.TABLE_SCHEMA,tc.TABLE_NAME,ccu.COLUMN_NAME"
-                + $" FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc"
-                + $"     JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE ccu ON tc.CONSTRAINT_NAME = ccu.Constraint_name"
-                + $" WHERE tc.CONSTRAINT_TYPE = 'Primary Key'"
-                + $"     AND tc.TABLE_SCHEMA + '.' + tc.TABLE_NAME = '{tableName}'";
+            command.CommandText = $"SELECT schema_name(ta.schema_id) + '.' + ta.name as TableName, col.name ColumnName"
+                + $" FROM sys.tables ta"
+                + $" INNER JOIN sys.indexes ind ON ind.object_id = ta.object_id"
+                + $" INNER JOIN sys.index_columns indcol ON indcol.object_id = ta.object_id AND indcol.index_id = ind.index_id"
+                + $" INNER JOIN sys.columns col ON col.object_id = ta.object_id AND col.column_id = indcol.column_id"
+                + $" WHERE schema_name(ta.schema_id) + '.' + ta.name = '{tableName}' AND (ind.is_primary_key = 1 OR ind.is_unique = 1)";
+
             reader = command.ExecuteReader();
             while (reader.Read())
-                if (!columns.Contains((string)reader["COLUMN_NAME"])) columns.Add((string)reader["COLUMN_NAME"]);
+                if (!columns.Contains((string)reader["ColumnName"])) columns.Add((string)reader["ColumnName"]);
 
             reader.Close();
-
 
             return columns;
         }
