@@ -55,6 +55,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConsoleInterface.cs" />
     <Compile Include="Domain\CsvFile.cs" />
     <Compile Include="Domain\DataSourceType.cs" />
     <Compile Include="Domain\DniNie.cs" />

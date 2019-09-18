@@ -20,7 +20,6 @@ namespace Obfuscator.Domain
             var loop = 0;
             do
             {
-                Trace.WriteLine(loop++);
                 var lastResults = new List<string>();
                 for (int i = 0; i < missingNifs; i++)
                     lastResults.Add(GenerateNIF());

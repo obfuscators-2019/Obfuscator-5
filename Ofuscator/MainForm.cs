@@ -262,6 +262,12 @@ namespace Obfuscator
             try
             {
                 var sqlDb = new SqlDatabase { ConnectionString = txtSqlConnectionString.Text };
+                sqlDb.StatusChanged += (callbackInfo, callbackArgs) =>
+                {
+                    var statusInformation = (SqlDatabase.StatusInformation)callbackInfo;
+                    SetStatus(statusInformation.Message, statusInformation.Progress, statusInformation.Total);
+                };
+
                 var tables = sqlDb.RetrieveDatabaseInfo();
 
                 InitializeComboDatabaseTableNames();
@@ -273,7 +279,6 @@ namespace Obfuscator
             catch (Exception ex)
             {
                 var exceptionInfo = $"EXCEPTION: ({ex.GetType().ToString()}) {ex.Message}";
-                Trace.WriteLine(exceptionInfo);
                 MessageBox.Show(exceptionInfo, "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
                 InitializeComboDatabaseTableNames();
@@ -407,6 +412,7 @@ namespace Obfuscator
                 toolStripStatusLabel1.Text = text;
                 toolStripProgressBar1.Maximum = max;
                 toolStripProgressBar1.Value = progress;
+                Application.DoEvents();
             }
         }
 
@@ -434,6 +440,15 @@ namespace Obfuscator
             SetObfuscationOps(obfuscationOps.Select(x => new ObfuscationParser(x)));
 
             SetStatus($"FILE: {Path.GetFileName(loadDialog.FileName)}", 0, 0);
+        }
+
+        private void LbObfuscationOps_Click(object sender, EventArgs e)
+        {
+            if (lbObfuscationOps.SelectedItem != null)
+            {
+                var operation = (ObfuscationParser)lbObfuscationOps.SelectedItem;
+                txtSqlConnectionString.Text = operation.Destination.ConnectionString;
+            }
         }
     }
 }

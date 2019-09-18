@@ -25,7 +25,11 @@ namespace Obfuscator
                 PrintHelpOnConsole();
                 return;
             }
-
+            else
+            {
+                var consoleInterface = new ConsoleInterface(args[0]);
+                consoleInterface.RunOperations();
+            }
         }
 
         private static void PrintHelpOnConsole()

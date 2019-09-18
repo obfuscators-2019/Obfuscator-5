@@ -11,9 +11,12 @@ namespace Obfuscator.Domain
 {
     public class SqlDatabase
     {
+        /// <summary>
+        /// PARAMETER object sender: SqlDatabase.StatusInformation
+        /// </summary>
         public EventHandler StatusChanged;
 
-        public struct StatusInformation
+        public class StatusInformation
         {
             public string Message { get; set; }
             public int Progress { get; set; }
@@ -26,21 +29,33 @@ namespace Obfuscator.Domain
 
         public List<DbTableInfo> RetrieveDatabaseInfo()
         {
+            StatusChanged?.Invoke(new StatusInformation {Message = "Opening connection to database"}, null);
+
             var connection = new SqlConnection(this.ConnectionString);
             connection.Open();
 
+            StatusChanged?.Invoke(new StatusInformation { Message = "Retrieving tables" }, null);
+
             RetrieveTables(connection);
+
             RetrieveTableColumns(connection);
 
             connection.Close();
+
+            StatusChanged?.Invoke(new StatusInformation { Message = $"DONE" }, null);
 
             return this.Tables;
         }
 
         private void RetrieveTableColumns(SqlConnection connection)
         {
+            var tableIndex = 0;
+            var numberOfTables = this.Tables.Count();
+
             foreach (var table in this.Tables)
             {
+                StatusChanged?.Invoke(new StatusInformation { Message = $"Retrieving columns for table: {table.Name}", Progress = ++tableIndex, Total = numberOfTables }, null);
+
                 table.Columns = new List<DbColumnInfo>();
                 var command = connection.CreateCommand();
                 command.CommandType = CommandType.Text;
@@ -70,7 +85,7 @@ namespace Obfuscator.Domain
 
             var command = connection.CreateCommand();
             command.CommandType = CommandType.Text;
-            command.CommandText = "SELECT Table_Schema, Table_Name FROM Information_Schema.Tables WHERE Table_Type = 'BASE TABLE'";
+            command.CommandText = "SELECT Table_Schema, Table_Name FROM Information_Schema.Tables WHERE Table_Type = 'BASE TABLE' ORDER BY Table_Schema, Table_Name";
             var reader = command.ExecuteReader();
             while (reader.Read())
             {
@@ -125,7 +140,7 @@ namespace Obfuscator.Domain
             return connection.Database;
         }
 
-        public void RunOperation(Obfuscation obfuscationOperation)
+        public void RunOperation(Obfuscation obfuscationOperation, StatusInformation status = null)
         {
             IEnumerable<string> originData;
 
@@ -136,48 +151,34 @@ namespace Obfuscator.Domain
             else
                 originData = GetSourceData(obfuscationOperation);
 
+            if (status == null) status = new StatusInformation();
+
             dataSet = OfuscateDataset(obfuscationOperation, originData, dataSet);
+            status.Message = $"...Saving obfuscation on {obfuscationOperation.Destination.TableName}";
+            StatusChanged?.Invoke(status, null);
             PersistOfuscation(obfuscationOperation, dataSet);
         }
 
         public void RunOperations(IEnumerable<Obfuscation> obfuscationOps)
         {
-            ReportStatusAsync(new StatusInformation
-            {
-                Message = $"",
-                Progress = 0,
-                Total = 0
-            });
+            StatusChanged?.Invoke(new StatusInformation {Message = $"Starting operations..."}, null);
 
             var operationIndex = 0;
             var numberOfOperations = obfuscationOps.Count();
 
             foreach (var obfuscation in obfuscationOps)
             {
-                ReportStatusAsync(new StatusInformation
+                var status = new StatusInformation
                 {
-                    Message = $"Ofuscating {obfuscation.Destination.TableName}.{obfuscation.Destination.ColumnInfo.Name}",
-                    Progress = operationIndex++,
+                    Message = $"Obfuscating {obfuscation.Destination.TableName}.{obfuscation.Destination.ColumnInfo.Name}",
+                    Progress = ++operationIndex,
                     Total = numberOfOperations
-                });
-                RunOperation(obfuscation);
+                };
+                StatusChanged?.Invoke(status, null);
+                RunOperation(obfuscation, status);
             }
 
-            ReportStatusAsync(new StatusInformation
-            {
-                Message = $"DONE",
-                Progress = 0,
-                Total = 0
-            });
-        }
-
-        private void ReportStatusAsync(StatusInformation statusInformation)
-        {
-            var task = new Task(() =>
-            {
-                StatusChanged(statusInformation, null);
-            });
-            task.Start();
+            StatusChanged?.Invoke(new StatusInformation { Message = $"DONE" }, null);
         }
 
         private void PersistOfuscation(Obfuscation obfuscationOperation, DataSet dataSet)
