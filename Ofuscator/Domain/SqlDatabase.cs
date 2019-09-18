@@ -29,8 +29,7 @@ namespace Obfuscator.Domain
             var connection = new SqlConnection(this.ConnectionString);
             connection.Open();
 
-            var idColumnsByTable = GetIdentityColumns(connection);
-            RetrieveTableNames(connection, idColumnsByTable);
+            RetrieveTables(connection);
             RetrieveTableColumns(connection);
 
             connection.Close();
@@ -65,7 +64,7 @@ namespace Obfuscator.Domain
             }
         }
 
-        private void RetrieveTableNames(SqlConnection connection, List<DbTableInfo> idColumns)
+        private void RetrieveTables(SqlConnection connection)
         {
             this.Tables = new List<DbTableInfo>();
 
@@ -79,42 +78,30 @@ namespace Obfuscator.Domain
                 var tableInfo = new DbTableInfo
                 {
                     Name = tableName,
-                    Columns = new List<DbColumnInfo>(),
-                    IdColumns = idColumns.FirstOrDefault(t => t.Name == tableName)?.Columns
+                    Columns = new List<DbColumnInfo>()
                 };
                 this.Tables.Add(tableInfo);
             }
             reader.Close();
         }
 
-        private List<DbTableInfo> GetIdentityColumns(SqlConnection connection)
+        private List<string> GetIdentityColumns(SqlConnection connection, string tableName)
         {
-            var tables = new List<DbTableInfo>();
+            var columns = new List<string>();
 
             var command = connection.CreateCommand();
             command.CommandType = CommandType.Text;
             command.CommandText = $"SELECT OBJECT_SCHEMA_NAME(id) + '.' + OBJECT_NAME(id) as TableName, Name as IdentityColumn"
-                + " FROM syscolumns"
-                + " WHERE COLUMNPROPERTY(id , name, 'IsIdentity') = 1"
-                + " ORDER BY 1, 2";
+                + $" FROM syscolumns"
+                + $" WHERE COLUMNPROPERTY(id , name, 'IsIdentity') = 1 AND TableName = {tableName}"
+                + $" ORDER BY 1, 2";
             var reader = command.ExecuteReader();
             while (reader.Read())
-            {
-                var tableName = (string)reader["TableName"];
-                var columnName = (string)reader["IdentityColumn"];
-                var table = tables.FirstOrDefault(t => t.Name == tableName);
-                if (table == null)
-                    tables.Add(new DbTableInfo
-                    {
-                        Name = tableName,
-                        IdColumns = new List<DbColumnInfo> { new DbColumnInfo { Name = columnName } }
-                    });
-                else
-                    table.IdColumns.Add(new DbColumnInfo { Name = columnName });
-            }
+                columns.Add((string)reader["IdentityColumn"]);
+
             reader.Close();
 
-            return tables;
+            return columns;
         }
 
         public string GetDatabaseName()
@@ -160,6 +147,9 @@ namespace Obfuscator.Domain
         private void PersistOfuscation(Obfuscation obfuscationOperation, DataSet dataSet)
         {
             var sqlConnection = new SqlConnection(obfuscationOperation.Destination.ConnectionString);
+
+            var idColumns = GetIdentityColumns(sqlConnection, obfuscationOperation.Destination.TableName);
+
             sqlConnection.Open();
             SqlDataAdapter sqlDataAdapter = new SqlDataAdapter($"SELECT * FROM {obfuscationOperation.Destination.TableName}", sqlConnection);
 

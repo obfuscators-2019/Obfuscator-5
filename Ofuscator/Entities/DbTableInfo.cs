@@ -7,6 +7,5 @@ namespace Obfuscator.Entities
     {
         public string Name { get; set; }
         public List<DbColumnInfo> Columns { get; set; }
-        public List<DbColumnInfo> IdColumns { get; set; }
     }
 }

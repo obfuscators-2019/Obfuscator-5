@@ -319,7 +319,7 @@ namespace Obfuscator
                 {
                     ConnectionString = txtSqlConnectionString.Text,
                     TableName = comboDbTableNames.Text,
-                    ColumnInfo = (DbColumnInfo)comboDbField.SelectedItem
+                    ColumnInfo = (DbColumnInfo)comboDbField.SelectedItem,
                 }
             };
         }
