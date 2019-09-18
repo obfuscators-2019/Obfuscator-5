@@ -29,7 +29,6 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             this.btnClose = new System.Windows.Forms.Button();
             this.columnSelector = new System.Windows.Forms.Panel();
@@ -39,8 +38,12 @@
             this.txtSqlConnectionString = new System.Windows.Forms.TextBox();
             this.btnConnect = new System.Windows.Forms.Button();
             this.gridCsvInformation = new System.Windows.Forms.DataGridView();
+            this.datasourceNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.columnIndexDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.columnNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.btnSelect = new System.Windows.Forms.DataGridViewButtonColumn();
-            this.btnAddNew = new System.Windows.Forms.Button();
+            this.dataSourceInformationBindingSource = new System.Windows.Forms.BindingSource(this.components);
+            this.btnAddCsv = new System.Windows.Forms.Button();
             this.comboDbTableNames = new System.Windows.Forms.ComboBox();
             this.btnCreateObuscationOperation = new System.Windows.Forms.Button();
             this.comboDbField = new System.Windows.Forms.ComboBox();
@@ -53,13 +56,10 @@
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
-            this.fileNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.columnIndexDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.columnNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.dataSourceInformationBindingSource = new System.Windows.Forms.BindingSource(this.components);
+            this.button1 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.gridCsvInformation)).BeginInit();
-            this.statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataSourceInformationBindingSource)).BeginInit();
+            this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // btnClose
@@ -141,7 +141,7 @@
             this.gridCsvInformation.AutoGenerateColumns = false;
             this.gridCsvInformation.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.gridCsvInformation.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
-            this.fileNameDataGridViewTextBoxColumn,
+            this.datasourceNameDataGridViewTextBoxColumn,
             this.columnIndexDataGridViewTextBoxColumn,
             this.columnNameDataGridViewTextBoxColumn,
             this.btnSelect});
@@ -151,6 +151,32 @@
             this.gridCsvInformation.Size = new System.Drawing.Size(458, 175);
             this.gridCsvInformation.TabIndex = 1;
             this.gridCsvInformation.CellMouseClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.GridCell_Click);
+            // 
+            // datasourceNameDataGridViewTextBoxColumn
+            // 
+            this.datasourceNameDataGridViewTextBoxColumn.DataPropertyName = "DataSourceName";
+            this.datasourceNameDataGridViewTextBoxColumn.HeaderText = "DataSourceName";
+            this.datasourceNameDataGridViewTextBoxColumn.Name = "datasourceNameDataGridViewTextBoxColumn";
+            this.datasourceNameDataGridViewTextBoxColumn.Width = 160;
+            // 
+            // columnIndexDataGridViewTextBoxColumn
+            // 
+            this.columnIndexDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.ColumnHeader;
+            this.columnIndexDataGridViewTextBoxColumn.DataPropertyName = "ColumnIndex";
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            this.columnIndexDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle2;
+            this.columnIndexDataGridViewTextBoxColumn.HeaderText = "ColumnIndex";
+            this.columnIndexDataGridViewTextBoxColumn.Name = "columnIndexDataGridViewTextBoxColumn";
+            this.columnIndexDataGridViewTextBoxColumn.ReadOnly = true;
+            this.columnIndexDataGridViewTextBoxColumn.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+            this.columnIndexDataGridViewTextBoxColumn.Width = 93;
+            // 
+            // columnNameDataGridViewTextBoxColumn
+            // 
+            this.columnNameDataGridViewTextBoxColumn.DataPropertyName = "ColumnName";
+            this.columnNameDataGridViewTextBoxColumn.HeaderText = "ColumnName";
+            this.columnNameDataGridViewTextBoxColumn.Name = "columnNameDataGridViewTextBoxColumn";
+            this.columnNameDataGridViewTextBoxColumn.ReadOnly = true;
             // 
             // btnSelect
             // 
@@ -162,16 +188,20 @@
             this.btnSelect.UseColumnTextForButtonValue = true;
             this.btnSelect.Width = 54;
             // 
-            // btnAddNew
+            // dataSourceInformationBindingSource
             // 
-            this.btnAddNew.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnAddNew.Location = new System.Drawing.Point(13, 33);
-            this.btnAddNew.Name = "btnAddNew";
-            this.btnAddNew.Size = new System.Drawing.Size(40, 20);
-            this.btnAddNew.TabIndex = 0;
-            this.btnAddNew.Text = "ADD";
-            this.btnAddNew.UseVisualStyleBackColor = true;
-            this.btnAddNew.Click += new System.EventHandler(this.BtnAddNew_Click);
+            this.dataSourceInformationBindingSource.DataSource = typeof(Obfuscator.Entities.DataSourceInformation);
+            // 
+            // btnAddCsv
+            // 
+            this.btnAddCsv.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnAddCsv.Location = new System.Drawing.Point(216, 12);
+            this.btnAddCsv.Name = "btnAddCsv";
+            this.btnAddCsv.Size = new System.Drawing.Size(44, 20);
+            this.btnAddCsv.TabIndex = 0;
+            this.btnAddCsv.Text = "+CSV";
+            this.btnAddCsv.UseVisualStyleBackColor = true;
+            this.btnAddCsv.Click += new System.EventHandler(this.BtnAddNew_Click);
             // 
             // comboDbTableNames
             // 
@@ -302,43 +332,23 @@
             this.toolStripStatusLabel1.Size = new System.Drawing.Size(12, 17);
             this.toolStripStatusLabel1.Text = "-";
             // 
-            // fileNameDataGridViewTextBoxColumn
+            // button1
             // 
-            this.fileNameDataGridViewTextBoxColumn.DataPropertyName = "FileName";
-            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-            this.fileNameDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle1;
-            this.fileNameDataGridViewTextBoxColumn.HeaderText = "FileName";
-            this.fileNameDataGridViewTextBoxColumn.Name = "fileNameDataGridViewTextBoxColumn";
-            this.fileNameDataGridViewTextBoxColumn.Width = 160;
-            // 
-            // columnIndexDataGridViewTextBoxColumn
-            // 
-            this.columnIndexDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.ColumnHeader;
-            this.columnIndexDataGridViewTextBoxColumn.DataPropertyName = "ColumnIndex";
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            this.columnIndexDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle2;
-            this.columnIndexDataGridViewTextBoxColumn.HeaderText = "ColumnIndex";
-            this.columnIndexDataGridViewTextBoxColumn.Name = "columnIndexDataGridViewTextBoxColumn";
-            this.columnIndexDataGridViewTextBoxColumn.ReadOnly = true;
-            this.columnIndexDataGridViewTextBoxColumn.Resizable = System.Windows.Forms.DataGridViewTriState.False;
-            this.columnIndexDataGridViewTextBoxColumn.Width = 93;
-            // 
-            // columnNameDataGridViewTextBoxColumn
-            // 
-            this.columnNameDataGridViewTextBoxColumn.DataPropertyName = "ColumnName";
-            this.columnNameDataGridViewTextBoxColumn.HeaderText = "ColumnName";
-            this.columnNameDataGridViewTextBoxColumn.Name = "columnNameDataGridViewTextBoxColumn";
-            this.columnNameDataGridViewTextBoxColumn.ReadOnly = true;
-            // 
-            // dataSourceInformationBindingSource
-            // 
-            this.dataSourceInformationBindingSource.DataSource = typeof(Obfuscator.Entities.CsvInformation);
+            this.button1.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button1.Location = new System.Drawing.Point(260, 12);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(44, 20);
+            this.button1.TabIndex = 20;
+            this.button1.Text = "+NIF";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.BtnAddNew_Click);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 615);
+            this.Controls.Add(this.button1);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.btnRunObfuscationOps);
             this.Controls.Add(this.btnSaveOps);
@@ -348,7 +358,7 @@
             this.Controls.Add(this.comboDbField);
             this.Controls.Add(this.btnCreateObuscationOperation);
             this.Controls.Add(this.comboDbTableNames);
-            this.Controls.Add(this.btnAddNew);
+            this.Controls.Add(this.btnAddCsv);
             this.Controls.Add(this.gridCsvInformation);
             this.Controls.Add(this.btnConnect);
             this.Controls.Add(this.label1);
@@ -361,9 +371,9 @@
             this.Name = "MainForm";
             this.Text = "OFUSCATOR";
             ((System.ComponentModel.ISupportInitialize)(this.gridCsvInformation)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.dataSourceInformationBindingSource)).EndInit();
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.dataSourceInformationBindingSource)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -379,11 +389,8 @@
         private System.Windows.Forms.Button btnConnect;
         private System.Windows.Forms.BindingSource dataSourceInformationBindingSource;
         private System.Windows.Forms.DataGridView gridCsvInformation;
-        private System.Windows.Forms.Button btnAddNew;
+        private System.Windows.Forms.Button btnAddCsv;
         private System.Windows.Forms.DataGridViewTextBoxColumn fileNameDataGridViewTextBoxColumn;
-        private System.Windows.Forms.DataGridViewTextBoxColumn columnIndexDataGridViewTextBoxColumn;
-        private System.Windows.Forms.DataGridViewTextBoxColumn columnNameDataGridViewTextBoxColumn;
-        private System.Windows.Forms.DataGridViewButtonColumn btnSelect;
         private System.Windows.Forms.ComboBox comboDbTableNames;
         private System.Windows.Forms.Button btnCreateObuscationOperation;
         private System.Windows.Forms.ComboBox comboDbField;
@@ -396,6 +403,11 @@
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
         private System.Windows.Forms.ToolStripProgressBar toolStripProgressBar1;
+        private System.Windows.Forms.DataGridViewTextBoxColumn datasourceNameDataGridViewTextBoxColumn;
+        private System.Windows.Forms.DataGridViewTextBoxColumn columnIndexDataGridViewTextBoxColumn;
+        private System.Windows.Forms.DataGridViewTextBoxColumn columnNameDataGridViewTextBoxColumn;
+        private System.Windows.Forms.DataGridViewButtonColumn btnSelect;
+        private System.Windows.Forms.Button button1;
     }
 }
 

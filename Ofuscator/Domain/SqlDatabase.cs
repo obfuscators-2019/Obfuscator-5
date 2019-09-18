@@ -127,9 +127,16 @@ namespace Obfuscator.Domain
 
         public void RunOperation(Obfuscation obfuscationOperation)
         {
-            var data = GetSourceData(obfuscationOperation);
+            IEnumerable<string> originData;
+
             var dataSet = GetTableData(obfuscationOperation);
-            dataSet = OfuscateDataset(obfuscationOperation, data, dataSet);
+
+            if (DataSourceBase.IsNifGenerator(obfuscationOperation.Origin.DataSourceName))
+                originData = DniNie.GenerateNIF(dataSet.Tables[0].Rows.Count);
+            else
+                originData = GetSourceData(obfuscationOperation);
+
+            dataSet = OfuscateDataset(obfuscationOperation, originData, dataSet);
             PersistOfuscation(obfuscationOperation, dataSet);
         }
 
@@ -201,7 +208,7 @@ namespace Obfuscator.Domain
         }
 
         private DataSet OfuscateDataset(Obfuscation obfuscationOperation, IEnumerable<string> data, DataSet dataSet)
-        {
+        {            
             var dataListIndex = 0;
             var dataListMaxIndex = data.Count() - 1;
             foreach (var row in dataSet.Tables[0].Rows)
@@ -227,10 +234,18 @@ namespace Obfuscator.Domain
 
         private IEnumerable<string> GetSourceData(Obfuscation obfuscationOperation)
         {
-            var csvFile = new CsvFile();
-            csvFile.ReadFile(obfuscationOperation.Origin.FileName);
-            var columnContent = csvFile.GetContent(obfuscationOperation.Origin.ColumnIndex);
-            return columnContent;
+            var csvDataSourcePrefix = DataSourceBase.GetDataSourcePrefix(DataSourceType.CSV);
+            if (obfuscationOperation.Origin.DataSourceName.StartsWith(csvDataSourcePrefix))
+            {
+                var csvFile = new CsvFile();
+                csvFile.ReadFile(obfuscationOperation.Origin.DataSourceName.Substring(csvDataSourcePrefix.Length));
+                var columnContent = csvFile.GetContent(obfuscationOperation.Origin.ColumnIndex);
+                return columnContent;
+            }
+            else
+            {
+                return null;
+            }
         }
     }
 }

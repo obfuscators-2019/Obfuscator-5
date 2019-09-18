@@ -1,8 +1,8 @@
 ﻿namespace Obfuscator.Entities
 {
-    public class CsvInformation
+    public class DataSourceInformation
     {
-        public string FileName { get; set; }
+        public string DataSourceName { get; set; }
         public bool HasHeaders { get; set; } = true;
         public int ColumnIndex { get; set; }
         public string ColumnName { get; set; }

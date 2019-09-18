@@ -27,16 +27,22 @@ namespace Obfuscator.UI
             {
                 var readableText = string.Empty;
 
-                var csvFileName = Path.GetFileName(Origin.FileName).ToUpper();
-                var columnIndex = Origin.ColumnIndex;
-                var columnName = (Origin.HasHeaders ? $" [{Origin.ColumnName}]" : string.Empty).ToUpper();
-
+                string originInformation = string.Empty;
+                if (DataSourceBase.IsNifGenerator(Origin.DataSourceName))
+                    originInformation = DataSourceBase.GetDataSourcePrefix(DataSourceType.NIFGenerator);
+                else
+                {
+                    var csvFileName = Path.GetFileName(Origin.DataSourceName).ToUpper();
+                    var columnIndex = Origin.ColumnIndex;
+                    var columnName = (Origin.HasHeaders ? $" [{Origin.ColumnName}]" : string.Empty).ToUpper();
+                    originInformation = $"File(\"{csvFileName}\").Column({columnIndex}{columnName})";
+                }
                 var sqlDatabase = new SqlDatabase { ConnectionString = Destination.ConnectionString };
                 string databaseName = sqlDatabase.GetDatabaseName();
                 string tableName = Destination.TableName.ToUpper();
                 string fieldName = Destination.ColumnInfo.Name.ToUpper();
 
-                readableText = $"File(\"{csvFileName}\").Column({columnIndex}{columnName}) =>REPLACES=> Db({databaseName}).Table({tableName}).Field({fieldName})";
+                readableText = $"{originInformation} =>REPLACES=> Db({databaseName}).Table({tableName}).Field({fieldName})";
 
                 return readableText;
             }

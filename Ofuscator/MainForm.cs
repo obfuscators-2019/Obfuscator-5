@@ -38,7 +38,7 @@ namespace Obfuscator
 
             foreach (var control in columnSelector.Controls)
             {
-                var csvInfoBounded = (CsvInformation)dataSourceInformationBindingSource.Current;
+                var csvInfoBounded = (DataSourceInformation)dataSourceInformationBindingSource.Current;
                 csvInfoBounded.HasHeaders = chkHasHeaders.Checked;
 
                 var columnContent = (Label)control;
@@ -92,74 +92,95 @@ namespace Obfuscator
         private void ConfigureDataGridBindingSource()
         {
             gridCsvInformation.AllowUserToAddRows = false;
-            dataSourceInformationBindingSource.DataSource = new List<CsvInformation> { };
+            dataSourceInformationBindingSource.DataSource = new List<DataSourceInformation> { };
         }
 
         private void BtnAddNew_Click(object sender, EventArgs e)
         {
             dataSourceInformationBindingSource.AddNew();
-            SelectCsvFileForGridRow();
+            if (sender == btnAddCsv) SelectCsvFileForGridRow();
+            else SetNIFGeneratorAsDatasource();
+        }
+
+        private void SetNIFGeneratorAsDatasource()
+        {
+            var dataSourceInformation = (DataSourceInformation)dataSourceInformationBindingSource.Current;
+            dataSourceInformation.DataSourceName = DataSourceBase.GetDataSourcePrefix(DataSourceType.NIFGenerator);
+            dataSourceInformation.ColumnName = string.Empty;
+            SetupColumnSelection(dataSourceInformation);
         }
 
         private void GridCell_Click(object sender, DataGridViewCellMouseEventArgs e)
         {
             var senderGrid = (DataGridView)sender;
 
-            if (e.ColumnIndex >= 0 && senderGrid.Columns[e.ColumnIndex] is DataGridViewButtonColumn && e.RowIndex >= 0)
+            if (GridButtonToChangeDataSourceWasClicked(e, senderGrid))
                 SelectCsvFileForGridRow();
-            else if (e.RowIndex >= 0)
+            else if (ClickedOnAGridRow(e))
             {
-                var csvInformation = (CsvInformation)dataSourceInformationBindingSource.Current;
-                SetupColumnSelection(csvInformation);
+                var dataSourceInformation = (DataSourceInformation)dataSourceInformationBindingSource.Current;
+                SetupColumnSelection(dataSourceInformation);
             }
+        }
+
+        private static bool ClickedOnAGridRow(DataGridViewCellMouseEventArgs e)
+        {
+            return e.RowIndex >= 0;
+        }
+
+        private static bool GridButtonToChangeDataSourceWasClicked(DataGridViewCellMouseEventArgs e, DataGridView senderGrid)
+        {
+            return e.ColumnIndex >= 0 && senderGrid.Columns[e.ColumnIndex] is DataGridViewButtonColumn && e.RowIndex >= 0;
         }
 
         private void SelectCsvFileForGridRow()
         {
-            var csvInformation = (CsvInformation)dataSourceInformationBindingSource.Current;
+            var dataSourceInformation = (DataSourceInformation)dataSourceInformationBindingSource.Current;
 
-            if (!File.Exists(csvInformation.FileName))
-                csvInformation.FileName = string.Empty;
+            if (!File.Exists(dataSourceInformation.DataSourceName))
+                dataSourceInformation.DataSourceName = string.Empty;
 
-            DialogResult userResponseToChangeFile = ConfirmToSelectANewFile(csvInformation.FileName);
+            DialogResult userResponseToChangeFile = ConfirmToSelectANewFile(dataSourceInformation.DataSourceName);
 
             if (userResponseToChangeFile == DialogResult.Yes)
             {
-                var fileName = SelectFile(csvInformation.FileName);
+                var fileName = SelectFile(dataSourceInformation.DataSourceName);
                 if (fileName != null)
                 {
-                    csvInformation.FileName = fileName;
-                    csvInformation.ColumnName = string.Empty;
+                    dataSourceInformation.DataSourceName = DataSourceBase.GetDataSourcePrefix(DataSourceType.CSV) + fileName;
+                    dataSourceInformation.ColumnName = string.Empty;
                 }
                 else
-                    fileName = csvInformation.FileName;
+                    fileName = dataSourceInformation.DataSourceName;
 
                 if (string.IsNullOrEmpty(fileName))
                 {
-                    dataSourceInformationBindingSource.Remove(csvInformation);
+                    dataSourceInformationBindingSource.Remove(dataSourceInformation);
                     gridCsvInformation.Refresh();
                     return;
                 }
             }
 
-            SetupColumnSelection(csvInformation);
+            SetupColumnSelection(dataSourceInformation);
 
             gridCsvInformation.Refresh();
         }
 
-        private void SetupColumnSelection(CsvInformation csvInformation)
+        private void SetupColumnSelection(DataSourceInformation dataSourceInformation)
         {
             columnSelector.Controls.Clear();
-            BackupCsvInstanceForCurrentColumns(csvInformation);
+            BackupCsvInstanceForCurrentColumns(dataSourceInformation);
 
-            CsvFile csvFile = ReadFiveLinesFromCsv(csvInformation);
+            if (DataSourceBase.IsNifGenerator(dataSourceInformation.DataSourceName)) return;
+
+            CsvFile csvFile = ReadFiveLinesFromCsv(dataSourceInformation);
             IEnumerable<string> headers = csvFile.GetHeaders();
 
             var previousCoordinate = 0;
             for (int columnIndex = 0; columnIndex < csvFile.GetColumns(); columnIndex++)
             {
                 Label label = CreateLabel();
-                AddColumnIndexAndHeadersToLabel(csvInformation, headers, columnIndex, label);
+                AddColumnIndexAndHeadersToLabel(dataSourceInformation, headers, columnIndex, label);
                 AddContentToLabel(csvFile, columnIndex, label);
 
                 label.Click += LabelColumn_Click;
@@ -178,8 +199,8 @@ namespace Obfuscator
                 MessageBox.Show("Can't get this header.\nPlease check the content of this file.", "WARNING", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             else
             {
-                var csvDataSource = (List<CsvInformation>)dataSourceInformationBindingSource.DataSource;
-                CsvInformation currentCsvInfo = GetCsvInstanceForCurrentColumns();
+                var csvDataSource = (List<DataSourceInformation>)dataSourceInformationBindingSource.DataSource;
+                DataSourceInformation currentCsvInfo = GetCsvInstanceForCurrentColumns();
                 var csvInfoBounded = csvDataSource.FirstOrDefault(x => x == currentCsvInfo);
                 if (chkHasHeaders.Checked)
                 {
@@ -202,17 +223,17 @@ namespace Obfuscator
                 label.Text += $"\n{columnContent}";
         }
 
-        private void AddColumnIndexAndHeadersToLabel(CsvInformation csvInformation, IEnumerable<string> headers, int columnIndex, Label label)
+        private void AddColumnIndexAndHeadersToLabel(DataSourceInformation csvInformation, IEnumerable<string> headers, int columnIndex, Label label)
         {
             if (csvInformation.HasHeaders) label.Text = $"{columnIndex} [{headers.ElementAt(columnIndex)}]";
             else label.Text = $"{columnIndex}";
         }
 
-        private CsvFile ReadFiveLinesFromCsv(CsvInformation csvInformation)
+        private CsvFile ReadFiveLinesFromCsv(DataSourceInformation dataSourceInformation)
         {
             var csvFile = new CsvFile();
-            csvFile.ReadFile(csvInformation.FileName, 5);
-            csvFile.HasHeaders = chkHasHeaders.Checked = csvInformation.HasHeaders;
+            csvFile.ReadFile(dataSourceInformation.DataSourceName.Substring(DataSourceBase.GetDataSourcePrefix(DataSourceType.CSV).Length), 5);
+            csvFile.HasHeaders = chkHasHeaders.Checked = dataSourceInformation.HasHeaders;
             return csvFile;
         }
 
@@ -226,12 +247,12 @@ namespace Obfuscator
             };
         }
 
-        private CsvInformation GetCsvInstanceForCurrentColumns()
+        private DataSourceInformation GetCsvInstanceForCurrentColumns()
         {
-            return (CsvInformation)columnSelector.Tag;
+            return (DataSourceInformation)columnSelector.Tag;
         }
 
-        private void BackupCsvInstanceForCurrentColumns(CsvInformation csvInformation)
+        private void BackupCsvInstanceForCurrentColumns(DataSourceInformation csvInformation)
         {
             columnSelector.Tag = csvInformation;
         }
@@ -314,7 +335,7 @@ namespace Obfuscator
         {
             return new ObfuscationParser()
             {
-                Origin = (CsvInformation)gridCsvInformation.SelectedRows[0].DataBoundItem,
+                Origin = (DataSourceInformation)gridCsvInformation.SelectedRows[0].DataBoundItem,
                 Destination = new DbInfo
                 {
                     ConnectionString = txtSqlConnectionString.Text,
