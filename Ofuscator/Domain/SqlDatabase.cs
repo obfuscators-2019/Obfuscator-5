@@ -93,13 +93,27 @@ namespace Obfuscator.Domain
             command.CommandType = CommandType.Text;
             command.CommandText = $"SELECT OBJECT_SCHEMA_NAME(id) + '.' + OBJECT_NAME(id) as TableName, Name as IdentityColumn"
                 + $" FROM syscolumns"
-                + $" WHERE COLUMNPROPERTY(id , name, 'IsIdentity') = 1 AND TableName = {tableName}"
+                + $" WHERE COLUMNPROPERTY(id , name, 'IsIdentity') = 1 AND OBJECT_SCHEMA_NAME(id) + '.' + OBJECT_NAME(id) = '{tableName}'"
                 + $" ORDER BY 1, 2";
             var reader = command.ExecuteReader();
             while (reader.Read())
                 columns.Add((string)reader["IdentityColumn"]);
 
             reader.Close();
+
+            command = connection.CreateCommand();
+            command.CommandType = CommandType.Text;
+            command.CommandText = $"SELECT tc.TABLE_SCHEMA,tc.TABLE_NAME,ccu.COLUMN_NAME"
+                + $" FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc"
+                + $"     JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE ccu ON tc.CONSTRAINT_NAME = ccu.Constraint_name"
+                + $" WHERE tc.CONSTRAINT_TYPE = 'Primary Key'"
+                + $"     AND tc.TABLE_SCHEMA + '.' + tc.TABLE_NAME = '{tableName}'";
+            reader = command.ExecuteReader();
+            while (reader.Read())
+                if (!columns.Contains((string)reader["COLUMN_NAME"])) columns.Add((string)reader["COLUMN_NAME"]);
+
+            reader.Close();
+
 
             return columns;
         }
@@ -120,6 +134,13 @@ namespace Obfuscator.Domain
 
         public void RunOperations(IEnumerable<Obfuscation> obfuscationOps)
         {
+            ReportStatusAsync(new StatusInformation
+            {
+                Message = $"",
+                Progress = 0,
+                Total = 0
+            });
+
             var operationIndex = 0;
             var numberOfOperations = obfuscationOps.Count();
 
@@ -133,6 +154,13 @@ namespace Obfuscator.Domain
                 });
                 RunOperation(obfuscation);
             }
+
+            ReportStatusAsync(new StatusInformation
+            {
+                Message = $"DONE",
+                Progress = 0,
+                Total = 0
+            });
         }
 
         private void ReportStatusAsync(StatusInformation statusInformation)
@@ -147,31 +175,34 @@ namespace Obfuscator.Domain
         private void PersistOfuscation(Obfuscation obfuscationOperation, DataSet dataSet)
         {
             var sqlConnection = new SqlConnection(obfuscationOperation.Destination.ConnectionString);
+            sqlConnection.Open();
 
             var idColumns = GetIdentityColumns(sqlConnection, obfuscationOperation.Destination.TableName);
+            var updateQuery = $"UPDATE {obfuscationOperation.Destination.TableName}" +
+                $" SET {obfuscationOperation.Destination.ColumnInfo.Name} = @param_{obfuscationOperation.Destination.ColumnInfo.Name}" +
+                $" WHERE {obfuscationOperation.Destination.ColumnInfo.Name} = @param_old_{obfuscationOperation.Destination.ColumnInfo.Name}";
+            if (idColumns.Any()) 
+                foreach (var idColumn in idColumns) updateQuery += $" AND {idColumn}=@param_{idColumn}";
 
-            sqlConnection.Open();
-            SqlDataAdapter sqlDataAdapter = new SqlDataAdapter($"SELECT * FROM {obfuscationOperation.Destination.TableName}", sqlConnection);
-
-            var valueParameter = (obfuscationOperation.Destination.ColumnInfo.DataType.ToLower().Contains("char") || true ? "'@value'" : "@value");
-            string updateCommandText = $"UPDATE {obfuscationOperation.Destination.TableName}" +
-                $" SET {obfuscationOperation.Destination.ColumnInfo.Name}={valueParameter}";
-
-            sqlDataAdapter.UpdateCommand = new SqlCommand();
-
-            var builder = new SqlCommandBuilder(sqlDataAdapter);
-            var updateCommand = builder.GetUpdateCommand();
-            Trace.WriteLine(updateCommand.Parameters);
-
-            sqlDataAdapter.Update(dataSet);
+            foreach (DataRow row in dataSet.Tables[0].Rows)
+            {
+                var updateCommand = sqlConnection.CreateCommand();
+                updateCommand.CommandType = CommandType.Text;
+                updateCommand.CommandText = updateQuery;
+                updateCommand.Parameters.AddWithValue($"param_{obfuscationOperation.Destination.ColumnInfo.Name}", row[obfuscationOperation.Destination.ColumnInfo.Name]);
+                updateCommand.Parameters.AddWithValue($"param_old_{obfuscationOperation.Destination.ColumnInfo.Name}", row[obfuscationOperation.Destination.ColumnInfo.Name, DataRowVersion.Original]);
+                if (idColumns.Any())
+                    foreach (var idColumn in idColumns) updateCommand.Parameters.AddWithValue($"param_{idColumn}", row[idColumn]);
+                updateCommand.ExecuteNonQuery();
+            }
 
             sqlConnection.Close();
         }
 
         private DataSet OfuscateDataset(Obfuscation obfuscationOperation, IEnumerable<string> data, DataSet dataSet)
         {
-            var dataListMaxIndex = data.Count() - 1;
             var dataListIndex = 0;
+            var dataListMaxIndex = data.Count() - 1;
             foreach (var row in dataSet.Tables[0].Rows)
             {
                 var dataRow = (DataRow)row;

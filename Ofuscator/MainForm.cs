@@ -361,8 +361,6 @@ namespace Obfuscator
 
         private void BtnRunObfuscationOps_Click(object sender, EventArgs e)
         {
-            SetStatus("", 0, 0);
-
             var sqlDb = new SqlDatabase();
             sqlDb.StatusChanged += (callbackInfo, callbackArgs) =>
             {
@@ -372,20 +370,22 @@ namespace Obfuscator
 
             var obfuscationOps = GetObfuscationOps();
             sqlDb.RunOperations(obfuscationOps);
-
-            SetStatus($"DONE", 0, 0);
         }
 
         private void SetStatus(string text, int progress, int max)
         {
             if (this.InvokeRequired)
             {
-                this.Invoke((MethodInvoker)delegate
+               this.Invoke((MethodInvoker)delegate
                {
-                   toolStripStatusLabel1.Text = text;
-                   toolStripProgressBar1.Maximum = max;
-                   toolStripProgressBar1.Value = progress;
+                   SetStatus(text, progress, max);
                });
+            }
+            else
+            {
+                toolStripStatusLabel1.Text = text;
+                toolStripProgressBar1.Maximum = max;
+                toolStripProgressBar1.Value = progress;
             }
         }
 
@@ -399,7 +399,7 @@ namespace Obfuscator
             var serializer = new FileSerializer();
             serializer.SaveObfuscationOps(obfuscationOps, saveDialog.FileName);
 
-            toolStripStatusLabel1.Text = $"FILE {Path.GetFileName(saveDialog.FileName)} SAVED at {DateTime.Now.ToShortTimeString()}";
+            SetStatus($"FILE {Path.GetFileName(saveDialog.FileName)} SAVED at {DateTime.Now.ToShortTimeString()}", 0, 0);
         }
 
         private void BtnOpenOps_Click(object sender, EventArgs e)
@@ -412,7 +412,7 @@ namespace Obfuscator
             var obfuscationOps = serializer.LoadObfuscationOps(loadDialog.FileName);
             SetObfuscationOps(obfuscationOps.Select(x => new ObfuscationParser(x)));
 
-            toolStripStatusLabel1.Text = $"FILE: {Path.GetFileName(loadDialog.FileName)}";
+            SetStatus($"FILE: {Path.GetFileName(loadDialog.FileName)}", 0, 0);
         }
     }
 }
