@@ -29,7 +29,8 @@ namespace Obfuscator.Domain
             var connection = new SqlConnection(this.ConnectionString);
             connection.Open();
 
-            RetrieveTableNames(connection);
+            var idColumnsByTable = GetIdentityColumns(connection);
+            RetrieveTableNames(connection, idColumnsByTable);
             RetrieveTableColumns(connection);
 
             connection.Close();
@@ -43,7 +44,7 @@ namespace Obfuscator.Domain
             {
                 table.Columns = new List<DbColumnInfo>();
                 var command = connection.CreateCommand();
-                command.CommandType = System.Data.CommandType.Text;
+                command.CommandType = CommandType.Text;
                 command.CommandText = $"SELECT Column_Name, Ordinal_Position, Is_Nullable, Data_Type, Character_Maximum_Length" +
                     $" FROM Information_Schema.Columns" +
                     $" WHERE TABLE_SCHEMA + '.' + TABLE_NAME = '{table.Name}'" +
@@ -64,23 +65,56 @@ namespace Obfuscator.Domain
             }
         }
 
-        private void RetrieveTableNames(SqlConnection connection)
+        private void RetrieveTableNames(SqlConnection connection, List<DbTableInfo> idColumns)
         {
             this.Tables = new List<DbTableInfo>();
 
             var command = connection.CreateCommand();
-            command.CommandType = System.Data.CommandType.Text;
+            command.CommandType = CommandType.Text;
             command.CommandText = "SELECT Table_Schema, Table_Name FROM Information_Schema.Tables WHERE Table_Type = 'BASE TABLE'";
             var reader = command.ExecuteReader();
             while (reader.Read())
             {
-                this.Tables.Add(new DbTableInfo
+                var tableName = $"{reader["Table_Schema"]}.{reader["Table_Name"]}";
+                var tableInfo = new DbTableInfo
                 {
-                    Name = $"{reader[0]}.{reader[1]}",
-                    Columns = new List<DbColumnInfo>()
-                });
+                    Name = tableName,
+                    Columns = new List<DbColumnInfo>(),
+                    IdColumns = idColumns.FirstOrDefault(t => t.Name == tableName)?.Columns
+                };
+                this.Tables.Add(tableInfo);
             }
             reader.Close();
+        }
+
+        private List<DbTableInfo> GetIdentityColumns(SqlConnection connection)
+        {
+            var tables = new List<DbTableInfo>();
+
+            var command = connection.CreateCommand();
+            command.CommandType = CommandType.Text;
+            command.CommandText = $"SELECT OBJECT_SCHEMA_NAME(id) + '.' + OBJECT_NAME(id) as TableName, Name as IdentityColumn"
+                + " FROM syscolumns"
+                + " WHERE COLUMNPROPERTY(id , name, 'IsIdentity') = 1"
+                + " ORDER BY 1, 2";
+            var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                var tableName = (string)reader["TableName"];
+                var columnName = (string)reader["IdentityColumn"];
+                var table = tables.FirstOrDefault(t => t.Name == tableName);
+                if (table == null)
+                    tables.Add(new DbTableInfo
+                    {
+                        Name = tableName,
+                        IdColumns = new List<DbColumnInfo> { new DbColumnInfo { Name = columnName } }
+                    });
+                else
+                    table.IdColumns.Add(new DbColumnInfo { Name = columnName });
+            }
+            reader.Close();
+
+            return tables;
         }
 
         public string GetDatabaseName()

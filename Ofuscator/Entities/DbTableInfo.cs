@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Obfuscator.Entities
 {
@@ -6,5 +7,6 @@ namespace Obfuscator.Entities
     {
         public string Name { get; set; }
         public List<DbColumnInfo> Columns { get; set; }
+        public List<DbColumnInfo> IdColumns { get; set; }
     }
 }

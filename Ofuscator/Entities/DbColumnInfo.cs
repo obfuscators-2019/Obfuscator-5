@@ -1,4 +1,6 @@
-﻿namespace Obfuscator.Entities
+﻿using System;
+
+namespace Obfuscator.Entities
 {
     public class DbColumnInfo
     {
