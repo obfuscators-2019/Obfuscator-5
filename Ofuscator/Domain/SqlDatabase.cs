@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Obfuscator.Domain
@@ -29,7 +30,7 @@ namespace Obfuscator.Domain
 
         public List<DbTableInfo> RetrieveDatabaseInfo()
         {
-            StatusChanged?.Invoke(new StatusInformation {Message = "Opening connection to database"}, null);
+            StatusChanged?.Invoke(new StatusInformation { Message = "Opening connection to database" }, null);
 
             var connection = new SqlConnection(this.ConnectionString);
             connection.Open();
@@ -38,45 +39,10 @@ namespace Obfuscator.Domain
 
             RetrieveTables(connection);
 
-            RetrieveTableColumns(connection);
-
-            connection.Close();
-
-            StatusChanged?.Invoke(new StatusInformation { Message = $"DONE" }, null);
+            // connection is closed inside
+            RetrieveAllTableColumnsAsync(connection);
 
             return this.Tables;
-        }
-
-        private void RetrieveTableColumns(SqlConnection connection)
-        {
-            var tableIndex = 0;
-            var numberOfTables = this.Tables.Count();
-
-            foreach (var table in this.Tables)
-            {
-                StatusChanged?.Invoke(new StatusInformation { Message = $"Retrieving columns for table: {table.Name}", Progress = ++tableIndex, Total = numberOfTables }, null);
-
-                table.Columns = new List<DbColumnInfo>();
-                var command = connection.CreateCommand();
-                command.CommandType = CommandType.Text;
-                command.CommandText = $"SELECT Column_Name, Ordinal_Position, Is_Nullable, Data_Type, Character_Maximum_Length" +
-                    $" FROM Information_Schema.Columns" +
-                    $" WHERE TABLE_SCHEMA + '.' + TABLE_NAME = '{table.Name}'" +
-                    $" ORDER BY ORDINAL_POSITION";
-                var reader = command.ExecuteReader();
-                while (reader.Read())
-                {
-                    table.Columns.Add(new DbColumnInfo
-                    {
-                        Name = (string)reader["Column_Name"],
-                        Index = (int)reader["Ordinal_Position"],
-                        IsNullable = ((string)reader["Is_Nullable"] == "YES"),
-                        DataType = (string)reader["Data_Type"],
-                        CharacterMaxLength = (reader["Character_Maximum_Length"] is DBNull ? 0 : (int)reader["Character_Maximum_Length"])
-                    });
-                }
-                reader.Close();
-            }
         }
 
         private void RetrieveTables(SqlConnection connection)
@@ -93,11 +59,80 @@ namespace Obfuscator.Domain
                 var tableInfo = new DbTableInfo
                 {
                     Name = tableName,
-                    Columns = new List<DbColumnInfo>()
+                    Columns = new List<DbColumnInfo>(),
+                    ConnectionString = this.ConnectionString
                 };
                 this.Tables.Add(tableInfo);
             }
             reader.Close();
+        }
+
+        private void RetrieveAllTableColumnsAsync(SqlConnection connection)
+        {
+            var task = new Task(() =>
+            {
+                RetrieveTableColumns(connection);
+                connection.Close();
+                StatusChanged?.Invoke(new StatusInformation { Message = $"DONE" }, null);
+            });
+            task.Start();
+        }
+
+        public void RetrieveTableColumns(DbTableInfo table)
+        {
+            RetrieveTableColumns(table, null, null);
+        }
+
+        private void RetrieveTableColumns(SqlConnection connection)
+        {
+            var status = new StatusInformation { Total = this.Tables.Count() };
+            foreach (var table in this.Tables)
+            {
+                RetrieveTableColumns(table, connection, status);
+                status.Progress++;
+            }
+        }
+
+        private void RetrieveTableColumns(DbTableInfo table, SqlConnection connection, StatusInformation statusInfo)
+        {
+            if (table.Columns != null && table.Columns.Count > 0) return;
+
+            if (statusInfo == null) statusInfo = new StatusInformation();
+            statusInfo.Message = $"Retrieving columns for table: {table.Name}";
+            StatusChanged?.Invoke(statusInfo, null);
+
+            var connectionWasNull = (connection == null);
+            if (connectionWasNull)
+            {
+                connection = new SqlConnection(this.ConnectionString);
+                connection.Open();
+            }
+
+            table.Columns = new List<DbColumnInfo>();
+            var command = connection.CreateCommand();
+            command.CommandType = CommandType.Text;
+            command.CommandText = $"SELECT Column_Name, Ordinal_Position, Is_Nullable, Data_Type, Character_Maximum_Length" +
+                $" FROM Information_Schema.Columns" +
+                $" WHERE TABLE_SCHEMA + '.' + TABLE_NAME = '{table.Name}'" +
+                $" ORDER BY ORDINAL_POSITION";
+            var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                table.Columns.Add(new DbColumnInfo
+                {
+                    Name = (string)reader["Column_Name"],
+                    Index = (int)reader["Ordinal_Position"],
+                    IsNullable = ((string)reader["Is_Nullable"] == "YES"),
+                    DataType = (string)reader["Data_Type"],
+                    CharacterMaxLength = (reader["Character_Maximum_Length"] is DBNull ? 0 : (int)reader["Character_Maximum_Length"])
+                });
+            }
+            reader.Close();
+
+            statusInfo.Message = $"Retrieving columns for table: {table.Name} - DONE";
+            StatusChanged?.Invoke(statusInfo, null);
+
+            if (connectionWasNull) connection.Close();
         }
 
         private List<string> GetIdentityColumns(SqlConnection connection, string tableName)

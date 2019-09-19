@@ -160,6 +160,15 @@ namespace Obfuscator
             }
         }
 
+        private void LbObfuscationOps_Click(object sender, EventArgs e)
+        {
+            if (lbObfuscationOps.SelectedItem != null)
+            {
+                var operation = (ObfuscationParser)lbObfuscationOps.SelectedItem;
+                txtSqlConnectionString.Text = operation.Destination.ConnectionString;
+            }
+        }
+
         private void BtnRunObfuscationOps_Click(object sender, EventArgs e)
         {
             var sqlDb = new SqlDatabase();
@@ -201,23 +210,20 @@ namespace Obfuscator
             SetStatus($"FILE: {Path.GetFileName(loadDialog.FileName)}", 0, 0);
         }
 
-        private void LbObfuscationOps_Click(object sender, EventArgs e)
-        {
-            if (lbObfuscationOps.SelectedItem != null)
-            {
-                var operation = (ObfuscationParser)lbObfuscationOps.SelectedItem;
-                txtSqlConnectionString.Text = operation.Destination.ConnectionString;
-            }
-        }
-
         private void ComboTableNames_SelectedIndexChanged(object sender, EventArgs e)
         {
             InitializeComboDatabaseFields();
             var table = (DbTableInfo)comboDbTableNames.SelectedItem;
-            if (table != null && table.Columns != null)
+            if (table != null)
             {
-                comboDbField.DataSource = table.Columns;
-                comboDbField.DisplayMember = "Name";
+                if (table.Columns == null || table.Columns.Count == 0)
+                    (new SqlDatabase { ConnectionString = table.ConnectionString }).RetrieveTableColumns(table);
+                
+                if (table.Columns != null && table.Columns.Count > 0)
+                {
+                    comboDbField.DataSource = table.Columns;
+                    comboDbField.DisplayMember = "Name";
+                }
             }
         }
 

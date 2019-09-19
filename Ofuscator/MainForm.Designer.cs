@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             this.btnClose = new System.Windows.Forms.Button();
             this.columnSelector = new System.Windows.Forms.Panel();
             this.chkHasHeaders = new System.Windows.Forms.CheckBox();
@@ -173,8 +173,8 @@
             // 
             this.columnIndexDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.ColumnHeader;
             this.columnIndexDataGridViewTextBoxColumn.DataPropertyName = "ColumnIndex";
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            this.columnIndexDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            this.columnIndexDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle1;
             this.columnIndexDataGridViewTextBoxColumn.HeaderText = "Column";
             this.columnIndexDataGridViewTextBoxColumn.Name = "columnIndexDataGridViewTextBoxColumn";
             this.columnIndexDataGridViewTextBoxColumn.ReadOnly = true;
