@@ -26,16 +26,13 @@ namespace Obfuscator.UI
             get
             {
                 var readableText = string.Empty;
-
-                string originInformation = string.Empty;
-                if (DataSourceBase.IsNifGenerator(Origin.DataSourceName))
-                    originInformation = DataSourceBase.GetDataSourcePrefix(DataSourceType.NIFGenerator);
-                else
+                string originInformation = $"[{Origin.DataSourceType}]";
+                if (Origin.DataSourceType == DataSourceType.CSV)
                 {
                     var csvFileName = Path.GetFileName(Origin.DataSourceName).ToUpper();
                     var columnIndex = Origin.ColumnIndex;
                     var columnName = (Origin.HasHeaders ? $" [{Origin.ColumnName}]" : string.Empty).ToUpper();
-                    originInformation = $"File(\"{csvFileName}\").Column({columnIndex}{columnName})";
+                    originInformation += $" File(\"{csvFileName}\").Column({columnIndex}{columnName})";
                 }
                 var sqlDatabase = new SqlDatabase { ConnectionString = Destination.ConnectionString };
                 string databaseName = sqlDatabase.GetDatabaseName();

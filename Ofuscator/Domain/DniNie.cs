@@ -17,7 +17,6 @@ namespace Obfuscator.Domain
         {
             IEnumerable<string> results = new List<string>();
             int missingNifs = numberOfNifs;
-            var loop = 0;
             do
             {
                 var lastResults = new List<string>();

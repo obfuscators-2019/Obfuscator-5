@@ -146,7 +146,7 @@ namespace Obfuscator.Domain
 
             var dataSet = GetTableData(obfuscationOperation);
 
-            if (DataSourceBase.IsNifGenerator(obfuscationOperation.Origin.DataSourceName))
+            if (obfuscationOperation.Origin.DataSourceType == DataSourceType.NIFGenerator)
                 originData = DniNie.GenerateNIF(dataSet.Tables[0].Rows.Count);
             else
                 originData = GetSourceData(obfuscationOperation);
@@ -235,11 +235,10 @@ namespace Obfuscator.Domain
 
         private IEnumerable<string> GetSourceData(Obfuscation obfuscationOperation)
         {
-            var csvDataSourcePrefix = DataSourceBase.GetDataSourcePrefix(DataSourceType.CSV);
-            if (obfuscationOperation.Origin.DataSourceName.StartsWith(csvDataSourcePrefix))
+            if (obfuscationOperation.Origin.DataSourceType == DataSourceType.CSV)
             {
                 var csvFile = new CsvFile();
-                csvFile.ReadFile(obfuscationOperation.Origin.DataSourceName.Substring(csvDataSourcePrefix.Length));
+                csvFile.ReadFile(obfuscationOperation.Origin.DataSourceName);
                 var columnContent = csvFile.GetContent(obfuscationOperation.Origin.ColumnIndex);
                 return columnContent;
             }
