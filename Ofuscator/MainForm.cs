@@ -55,8 +55,9 @@ namespace Obfuscator
 
         private void SelectCurrentGridRow()
         {
-            gridCsvInformation.CurrentRow.Selected = true;
+            if (gridCsvInformation.CurrentRow == null) return;
 
+            gridCsvInformation.CurrentRow.Selected = true;
             var dataSourceInformation = (DataSourceInformation)dataSourceInformationBindingSource.Current;
             SetupColumnSelection(dataSourceInformation);
         }
@@ -298,10 +299,11 @@ namespace Obfuscator
                     dataSourceInformation.DataSourceName = fileName;
                     dataSourceInformation.ColumnName = string.Empty;
                 }
+                else if (dataSourceInformation.DataSourceType == DataSourceType.CSV && string.IsNullOrEmpty(dataSourceInformation.DataSourceName))
+                    dataSourceInformationBindingSource.Remove(dataSourceInformation);
             }
 
             SelectCurrentGridRow();
-
             gridCsvInformation.Refresh();
         }
 
@@ -397,6 +399,7 @@ namespace Obfuscator
         {
             lbObfuscationOps.DataSource = new BindingList<ObfuscationParser>(obfuscationOps.ToList()); 
             lbObfuscationOps.DisplayMember = "ReadableContent";
+            if (lbObfuscationOps.Items.Count > 0) lbObfuscationOps.SelectedIndex = 0;
         }
 
         private ObfuscationParser CreateObfuscationInfo()
