@@ -15,6 +15,8 @@ namespace Obfuscator
 {
     public partial class MainForm : Form
     {
+        private const int ROWS_TO_SHOW_IN_COLUMN_SELECTOR = 10;
+
         public MainForm()
         {
             InitializeComponent();
@@ -125,10 +127,36 @@ namespace Obfuscator
 
         private void LbObfuscationOps_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Delete && lbObfuscationOps.SelectedIndex >= 0)
+            var currentIndex = lbObfuscationOps.SelectedIndex;
+            if (currentIndex == -1) return;
+
+            var ops = GetObfuscationOps();
+            switch (e.KeyData)
             {
-                var ops = GetObfuscationOps();
-                ops.Remove((ObfuscationParser)lbObfuscationOps.SelectedItem);
+                case Keys.Delete:
+                    ops.RemoveAt(currentIndex);
+                    break;
+                case Keys.Control | Keys.Up:
+                    if (currentIndex > 0)
+                    {
+                        var currentOp = ops[currentIndex];
+                        ops.Insert(currentIndex - 1, currentOp);
+                        ops.RemoveAt(currentIndex + 1);
+                        lbObfuscationOps.SelectedIndex = currentIndex;
+                    }
+                    break;
+                case Keys.Control | Keys.Down:
+                    if (currentIndex < ops.Count - 1)
+                    {
+                        var currentOp = ops[currentIndex];
+                        ops.Insert(currentIndex + 2, currentOp);
+                        ops.RemoveAt(currentIndex);
+                        lbObfuscationOps.SelectedIndex = currentIndex;
+                    }
+                    break;
+                default:
+                    e.Handled = false;
+                    break;
             }
         }
 
@@ -158,7 +186,7 @@ namespace Obfuscator
             SetStatus($"FILE {Path.GetFileName(saveDialog.FileName)} SAVED at {DateTime.Now.ToShortTimeString()}", 0, 0);
         }
 
-        private void BtnOpenOps_Click(object sender, EventArgs e)
+        private void BtnLoadOps_Click(object sender, EventArgs e)
         {
             var loadDialog = new OpenFileDialog();
             var dialogResult = loadDialog.ShowDialog();
@@ -167,6 +195,8 @@ namespace Obfuscator
             var serializer = new FileSerializer();
             var obfuscationOps = serializer.LoadObfuscationOps(loadDialog.FileName);
             SetObfuscationOps(obfuscationOps.Select(x => new ObfuscationParser(x)));
+
+            lbObfuscationOps.Focus();
 
             SetStatus($"FILE: {Path.GetFileName(loadDialog.FileName)}", 0, 0);
         }
@@ -347,7 +377,7 @@ namespace Obfuscator
         private CsvFile ReadFiveLinesFromCsv(DataSourceInformation dataSourceInformation)
         {
             var csvFile = new CsvFile();
-            csvFile.ReadFile(dataSourceInformation.DataSourceName, 5);
+            csvFile.ReadFile(dataSourceInformation.DataSourceName, ROWS_TO_SHOW_IN_COLUMN_SELECTOR);
             csvFile.HasHeaders = chkHasHeaders.Checked = dataSourceInformation.HasHeaders;
             return csvFile;
         }
@@ -389,7 +419,7 @@ namespace Obfuscator
 
         private BindingList<ObfuscationParser> GetObfuscationOps()
         {
-            if (lbObfuscationOps.DataSource == null)
+            if (lbObfuscationOps.DataSource == null || !(lbObfuscationOps.DataSource is BindingList<ObfuscationParser>))
                 SetObfuscationOps(new BindingList<ObfuscationParser>());
 
             return (BindingList<ObfuscationParser>)lbObfuscationOps.DataSource;
@@ -399,7 +429,11 @@ namespace Obfuscator
         {
             lbObfuscationOps.DataSource = new BindingList<ObfuscationParser>(obfuscationOps.ToList()); 
             lbObfuscationOps.DisplayMember = "ReadableContent";
-            if (lbObfuscationOps.Items.Count > 0) lbObfuscationOps.SelectedIndex = 0;
+            if (lbObfuscationOps.Items.Count > 0)
+            {
+                lbObfuscationOps.SelectedIndex = 0;
+                LbObfuscationOps_Click(this, null);
+            }
         }
 
         private ObfuscationParser CreateObfuscationInfo()

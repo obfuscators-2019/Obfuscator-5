@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             this.btnClose = new System.Windows.Forms.Button();
             this.columnSelector = new System.Windows.Forms.Panel();
             this.chkHasHeaders = new System.Windows.Forms.CheckBox();
@@ -38,6 +38,11 @@
             this.txtSqlConnectionString = new System.Windows.Forms.TextBox();
             this.btnConnect = new System.Windows.Forms.Button();
             this.gridCsvInformation = new System.Windows.Forms.DataGridView();
+            this.gridColumnDataSourceType = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.datasourceNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.columnIndexDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.columnNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.btnSelect = new System.Windows.Forms.DataGridViewButtonColumn();
             this.dataSourceInformationBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.btnAddCsv = new System.Windows.Forms.Button();
             this.comboDbTableNames = new System.Windows.Forms.ComboBox();
@@ -46,18 +51,14 @@
             this.label1 = new System.Windows.Forms.Label();
             this.lbObfuscationOps = new System.Windows.Forms.ListBox();
             this.btnClearOps = new System.Windows.Forms.Button();
-            this.btnOpenOps = new System.Windows.Forms.Button();
+            this.btnLoadOps = new System.Windows.Forms.Button();
             this.btnSaveOps = new System.Windows.Forms.Button();
             this.btnRunObfuscationOps = new System.Windows.Forms.Button();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.button1 = new System.Windows.Forms.Button();
-            this.gridColumnDataSourceType = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.datasourceNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.columnIndexDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.columnNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.btnSelect = new System.Windows.Forms.DataGridViewButtonColumn();
+            this.dataGridViewTextBoxColumn1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.gridCsvInformation)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataSourceInformationBindingSource)).BeginInit();
             this.statusStrip1.SuspendLayout();
@@ -154,6 +155,49 @@
             this.gridCsvInformation.TabIndex = 1;
             this.gridCsvInformation.CellMouseClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.GridCell_Click);
             // 
+            // gridColumnDataSourceType
+            // 
+            this.gridColumnDataSourceType.DataPropertyName = "DataSourceType";
+            this.gridColumnDataSourceType.HeaderText = "Type";
+            this.gridColumnDataSourceType.Name = "gridColumnDataSourceType";
+            this.gridColumnDataSourceType.ReadOnly = true;
+            // 
+            // datasourceNameDataGridViewTextBoxColumn
+            // 
+            this.datasourceNameDataGridViewTextBoxColumn.DataPropertyName = "DataSourceName";
+            this.datasourceNameDataGridViewTextBoxColumn.HeaderText = "DataSourceName";
+            this.datasourceNameDataGridViewTextBoxColumn.Name = "datasourceNameDataGridViewTextBoxColumn";
+            this.datasourceNameDataGridViewTextBoxColumn.Width = 160;
+            // 
+            // columnIndexDataGridViewTextBoxColumn
+            // 
+            this.columnIndexDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.ColumnHeader;
+            this.columnIndexDataGridViewTextBoxColumn.DataPropertyName = "ColumnIndex";
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            this.columnIndexDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle2;
+            this.columnIndexDataGridViewTextBoxColumn.HeaderText = "Column";
+            this.columnIndexDataGridViewTextBoxColumn.Name = "columnIndexDataGridViewTextBoxColumn";
+            this.columnIndexDataGridViewTextBoxColumn.ReadOnly = true;
+            this.columnIndexDataGridViewTextBoxColumn.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+            this.columnIndexDataGridViewTextBoxColumn.Width = 67;
+            // 
+            // columnNameDataGridViewTextBoxColumn
+            // 
+            this.columnNameDataGridViewTextBoxColumn.DataPropertyName = "ColumnName";
+            this.columnNameDataGridViewTextBoxColumn.HeaderText = "ColumnName";
+            this.columnNameDataGridViewTextBoxColumn.Name = "columnNameDataGridViewTextBoxColumn";
+            this.columnNameDataGridViewTextBoxColumn.ReadOnly = true;
+            // 
+            // btnSelect
+            // 
+            this.btnSelect.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.ColumnHeader;
+            this.btnSelect.HeaderText = "SELECT";
+            this.btnSelect.Name = "btnSelect";
+            this.btnSelect.Text = "...";
+            this.btnSelect.ToolTipText = "Select a different file and/or column";
+            this.btnSelect.UseColumnTextForButtonValue = true;
+            this.btnSelect.Width = 54;
+            // 
             // dataSourceInformationBindingSource
             // 
             this.dataSourceInformationBindingSource.DataSource = typeof(Obfuscator.Entities.DataSourceInformation);
@@ -238,17 +282,17 @@
             this.btnClearOps.UseVisualStyleBackColor = true;
             this.btnClearOps.Click += new System.EventHandler(this.BtnClearOps_Click);
             // 
-            // btnOpenOps
+            // btnLoadOps
             // 
-            this.btnOpenOps.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.btnOpenOps.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnOpenOps.Location = new System.Drawing.Point(141, 562);
-            this.btnOpenOps.Name = "btnOpenOps";
-            this.btnOpenOps.Size = new System.Drawing.Size(47, 23);
-            this.btnOpenOps.TabIndex = 12;
-            this.btnOpenOps.Text = "Load";
-            this.btnOpenOps.UseVisualStyleBackColor = true;
-            this.btnOpenOps.Click += new System.EventHandler(this.BtnOpenOps_Click);
+            this.btnLoadOps.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btnLoadOps.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            this.btnLoadOps.Location = new System.Drawing.Point(141, 562);
+            this.btnLoadOps.Name = "btnLoadOps";
+            this.btnLoadOps.Size = new System.Drawing.Size(47, 23);
+            this.btnLoadOps.TabIndex = 12;
+            this.btnLoadOps.Text = "Load";
+            this.btnLoadOps.UseVisualStyleBackColor = true;
+            this.btnLoadOps.Click += new System.EventHandler(this.BtnLoadOps_Click);
             // 
             // btnSaveOps
             // 
@@ -310,48 +354,12 @@
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.BtnAddNew_Click);
             // 
-            // gridColumnDataSourceType
+            // dataGridViewTextBoxColumn1
             // 
-            this.gridColumnDataSourceType.DataPropertyName = "DataSourceType";
-            this.gridColumnDataSourceType.HeaderText = "Type";
-            this.gridColumnDataSourceType.Name = "gridColumnDataSourceType";
-            this.gridColumnDataSourceType.ReadOnly = true;
-            // 
-            // datasourceNameDataGridViewTextBoxColumn
-            // 
-            this.datasourceNameDataGridViewTextBoxColumn.DataPropertyName = "DataSourceName";
-            this.datasourceNameDataGridViewTextBoxColumn.HeaderText = "DataSourceName";
-            this.datasourceNameDataGridViewTextBoxColumn.Name = "datasourceNameDataGridViewTextBoxColumn";
-            this.datasourceNameDataGridViewTextBoxColumn.Width = 160;
-            // 
-            // columnIndexDataGridViewTextBoxColumn
-            // 
-            this.columnIndexDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.ColumnHeader;
-            this.columnIndexDataGridViewTextBoxColumn.DataPropertyName = "ColumnIndex";
-            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            this.columnIndexDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle1;
-            this.columnIndexDataGridViewTextBoxColumn.HeaderText = "Column";
-            this.columnIndexDataGridViewTextBoxColumn.Name = "columnIndexDataGridViewTextBoxColumn";
-            this.columnIndexDataGridViewTextBoxColumn.ReadOnly = true;
-            this.columnIndexDataGridViewTextBoxColumn.Resizable = System.Windows.Forms.DataGridViewTriState.False;
-            this.columnIndexDataGridViewTextBoxColumn.Width = 67;
-            // 
-            // columnNameDataGridViewTextBoxColumn
-            // 
-            this.columnNameDataGridViewTextBoxColumn.DataPropertyName = "ColumnName";
-            this.columnNameDataGridViewTextBoxColumn.HeaderText = "ColumnName";
-            this.columnNameDataGridViewTextBoxColumn.Name = "columnNameDataGridViewTextBoxColumn";
-            this.columnNameDataGridViewTextBoxColumn.ReadOnly = true;
-            // 
-            // btnSelect
-            // 
-            this.btnSelect.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.ColumnHeader;
-            this.btnSelect.HeaderText = "SELECT";
-            this.btnSelect.Name = "btnSelect";
-            this.btnSelect.Text = "...";
-            this.btnSelect.ToolTipText = "Select a different file and/or column";
-            this.btnSelect.UseColumnTextForButtonValue = true;
-            this.btnSelect.Width = 54;
+            this.dataGridViewTextBoxColumn1.DataPropertyName = "DataSourceType";
+            this.dataGridViewTextBoxColumn1.HeaderText = "Type";
+            this.dataGridViewTextBoxColumn1.Name = "dataGridViewTextBoxColumn1";
+            this.dataGridViewTextBoxColumn1.ReadOnly = true;
             // 
             // MainForm
             // 
@@ -362,7 +370,7 @@
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.btnRunObfuscationOps);
             this.Controls.Add(this.btnSaveOps);
-            this.Controls.Add(this.btnOpenOps);
+            this.Controls.Add(this.btnLoadOps);
             this.Controls.Add(this.btnClearOps);
             this.Controls.Add(this.lbObfuscationOps);
             this.Controls.Add(this.comboDbField);
@@ -406,7 +414,7 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ListBox lbObfuscationOps;
         private System.Windows.Forms.Button btnClearOps;
-        private System.Windows.Forms.Button btnOpenOps;
+        private System.Windows.Forms.Button btnLoadOps;
         private System.Windows.Forms.Button btnSaveOps;
         private System.Windows.Forms.Button btnRunObfuscationOps;
         private System.Windows.Forms.StatusStrip statusStrip1;
@@ -418,6 +426,7 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn columnIndexDataGridViewTextBoxColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn columnNameDataGridViewTextBoxColumn;
         private System.Windows.Forms.DataGridViewButtonColumn btnSelect;
+        private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn1;
     }
 }
 
