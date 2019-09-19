@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,6 +13,48 @@ namespace Obfuscator.Domain
 {
     public class SqlDatabase
     {
+        private static List<string> _knownDateTimeFormats = null;
+
+        private List<string> KnownDateTimeFormats
+        {
+            get
+            {
+                if (_knownDateTimeFormats == null)
+                {
+                    var knownWeekDayFormats = new String[] { "", "ddd, ", "dddd, ", }; // "", Fri, Friday};
+
+                    var knownDateFormats = new String[]
+                    {
+                        "d/M/yyyy", "dd/MM/yyyy",
+                        "d-M-yyyy", "dd-MM-yyyy",
+
+                        "M/d/yyyy", "MM/dd/yyyy",
+                        "M-d-yyyy", "MM-dd-yyyy",
+
+                        "yyyy/M/d", "yyyy/MM/dd",
+                        "yyyy-M-d", "yyyy-MM-dd",
+
+                        "dd MMMM yyyy", "yyyy MMMM dd"
+                    };
+                    var knownTimeFormats = new String[]
+                    {
+                        "",
+
+                        " H:mm",
+                        " HH:mm",
+                        " HH:mm:ss",
+
+                        " h:mm tt",
+                        " hh:mm tt",
+                        " hh:mm:ss tt",
+                    };
+
+                    _knownDateTimeFormats = knownWeekDayFormats.SelectMany(w => knownDateFormats.SelectMany(d => knownTimeFormats.Select(t => w + d + t))).ToList();
+                }
+                return _knownDateTimeFormats;
+            }
+        }
+
         /// <summary>
         /// PARAMETER object sender: SqlDatabase.StatusInformation
         /// </summary>
@@ -181,10 +224,24 @@ namespace Obfuscator.Domain
 
             var dataSet = GetTableData(obfuscationOperation);
 
-            if (obfuscationOperation.Origin.DataSourceType == DataSourceType.NIFGenerator)
-                originData = DniNie.GenerateNIF(dataSet.Tables[0].Rows.Count);
-            else
-                originData = GetSourceData(obfuscationOperation);
+            switch (obfuscationOperation.Origin.DataSourceType)
+            {
+                case DataSourceType.CSV:
+                    originData = GetSourceData(obfuscationOperation);
+                    break;
+                case DataSourceType.DNIGenerator:
+                    originData = DniNie.GenerateDNI(dataSet.Tables[0].Rows.Count);
+                    break;
+                case DataSourceType.NIEGenerator:
+                    originData = DniNie.GenerateNIE(dataSet.Tables[0].Rows.Count);
+                    break;
+                case DataSourceType.NIFGenerator:
+                    originData = DniNie.GenerateNIF(dataSet.Tables[0].Rows.Count);
+                    break;
+                default:
+                    originData = new List<string>();
+                    break;
+            }
 
             if (status == null) status = new StatusInformation();
 
@@ -250,13 +307,36 @@ namespace Obfuscator.Domain
             foreach (var row in dataSet.Tables[0].Rows)
             {
                 var dataRow = (DataRow)row;
-                dataRow[obfuscationOperation.Destination.ColumnInfo.Name] = data.ElementAt(dataListIndex);
+                if (dataRow[obfuscationOperation.Destination.ColumnInfo.Name] is DateTime)
+                    dataRow[obfuscationOperation.Destination.ColumnInfo.Name] = ParseDateTime(data.ElementAt(dataListIndex));
+                else
+                    dataRow[obfuscationOperation.Destination.ColumnInfo.Name] = data.ElementAt(dataListIndex);
 
                 dataListIndex++;
                 if (dataListIndex > dataListMaxIndex) dataListIndex = 0;
             }
 
             return dataSet;
+        }
+
+        private DateTime ParseDateTime(String value)
+        {
+            DateTime dateValue;
+            foreach (var format in KnownDateTimeFormats)
+            {
+                if (DateTime.TryParseExact(value, format, CultureInfo.InvariantCulture, DateTimeStyles.None, out dateValue))
+                {
+                    MoveFormatToFirstInTheList(format);
+                    return dateValue;
+                }
+            }
+            throw new FormatException($"Unknown Date-Time format: {value}. Known formats: {string.Join(",", KnownDateTimeFormats)}");
+        }
+
+        private void MoveFormatToFirstInTheList(string format)
+        {
+            KnownDateTimeFormats.Remove(format);
+            KnownDateTimeFormats.Insert(0, format);
         }
 
         private DataSet GetTableData(Obfuscation obfuscationOperation)

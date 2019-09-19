@@ -13,28 +13,7 @@ namespace Obfuscator.Domain
         /// <summary> Tabla de asignación. </summary>
         private const string CORRESPONDENCIA = "TRWAGMYFPDXBNJZSQVHLCKE";
 
-        static public List<string> GenerateNIF(int numberOfNifs)
-        {
-            IEnumerable<string> results = new List<string>();
-            int missingNifs = numberOfNifs;
-            do
-            {
-                var lastResults = new List<string>();
-                for (int i = 0; i < missingNifs; i++)
-                    lastResults.Add(GenerateNIF());
-
-                lastResults.AddRange(results);
-
-                results = lastResults.Distinct();
-                var currentTotal = results.Count();
-
-                missingNifs = numberOfNifs - currentTotal;
-            } while (missingNifs > 0);
-
-            return results.ToList();
-        }
-
-        static public string GenerateNIF()
+        public static string GenerateNIF()
         {
             var nifGenerators = new Func<string>[]
             {
@@ -48,7 +27,7 @@ namespace Obfuscator.Domain
             return result;
         }
 
-        static public string GenerateDNI()
+        public static string GenerateDNI()
         {
             var randomizer = new Random();
             var randomNumber = randomizer.Next(10000000, 99999999);
@@ -60,7 +39,7 @@ namespace Obfuscator.Domain
             return dniGenerated;
         }
 
-        static public string GenerateNIE()
+        public static string GenerateNIE()
         {
             var initialLetters = new char[] { 'X', 'Y', 'Z' };
 
@@ -75,10 +54,46 @@ namespace Obfuscator.Domain
             return nieGenerated;
         }
 
+        public static List<string> GenerateDNI(int numberOfDNIs)
+        {
+            return GenerateMultipleDistinct(numberOfDNIs, GenerateDNI);
+        }
+
+        public static List<string> GenerateNIE(int numberOfNIEs)
+        {
+            return GenerateMultipleDistinct(numberOfNIEs, GenerateNIE);
+        }
+
+        public static List<string> GenerateNIF(int numberOfNifs)
+        {
+            return GenerateMultipleDistinct(numberOfNifs, GenerateNIF);
+        }
+
+        private static List<string> GenerateMultipleDistinct(int numberOfElements, Func<string> generator)
+        {
+            IEnumerable<string> results = new List<string>();
+            int missingelements = numberOfElements;
+            do
+            {
+                var lastResults = new List<string>();
+                for (int i = 0; i < missingelements; i++)
+                    lastResults.Add(generator());
+
+                lastResults.AddRange(results);
+
+                results = lastResults.Distinct();
+                var currentTotal = results.Count();
+
+                missingelements = numberOfElements - currentTotal;
+            } while (missingelements > 0);
+
+            return results.ToList();
+        }
+
         /// <summary> Genera la letra correspondiente a un DNI. </summary>
         /// <param name="dni"> DNI a procesar. </param>
         /// <returns> Letra correspondiente al DNI. </returns>
-        static private char LetraNIF(string dni)
+        private static char LetraNIF(string dni)
         {
             Match match = new Regex(@"\b(\d{8})\b").Match(dni);
             if (match.Success)
@@ -87,12 +102,10 @@ namespace Obfuscator.Domain
                 throw new ArgumentException("El DNI debe contener 8 dígitos.");
         }
 
-        // NOTA: Si la expresión anterior no cuenta bien la cantidad de dígitos probar con: Match match = new Regex(@"\d{8}").Match(dni);
-
         /// <summary> Genera la letra correspondiente a un NIE. </summary>
         /// <param name="nie"> NIE a procesar. </param>
         /// <returns> Letra correspondiente al NIE. </returns>
-        static private char LetraNIE(string nie)
+        private static char LetraNIE(string nie)
         {
             Match match = new Regex(@"\b([X|Y|Z|x|y|z])(\d{7})\b").Match(nie);
             if (match.Success)

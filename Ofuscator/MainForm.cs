@@ -41,7 +41,9 @@ namespace Obfuscator
         {
             dataSourceInformationBindingSource.AddNew();
             if (sender == btnAddCsv) SelectCsvFileForGridRow();
-            else SetNIFGeneratorAsDatasource();
+            else if (sender == btnNIF) SetGeneratorAsDatasource(DataSourceType.NIFGenerator);
+            else if (sender == btnDNI) SetGeneratorAsDatasource(DataSourceType.DNIGenerator);
+            else if (sender == btnNIE) SetGeneratorAsDatasource(DataSourceType.NIEGenerator);
         }
 
         private void GridCell_Click(object sender, DataGridViewCellMouseEventArgs e)
@@ -301,12 +303,12 @@ namespace Obfuscator
             dataSourceInformationBindingSource.DataSource = new List<DataSourceInformation> { };
         }
 
-        private void SetNIFGeneratorAsDatasource()
+        private void SetGeneratorAsDatasource(DataSourceType dataSourceType)
         {
             var dataSourceInformation = (DataSourceInformation)dataSourceInformationBindingSource.Current;
             dataSourceInformation.DataSourceName = string.Empty;
             dataSourceInformation.ColumnName = string.Empty;
-            dataSourceInformation.DataSourceType = DataSourceType.NIFGenerator;
+            dataSourceInformation.DataSourceType = dataSourceType;
             SelectCurrentGridRow();
         }
 
@@ -356,7 +358,7 @@ namespace Obfuscator
             var previousCoordinate = 0;
             for (int columnIndex = 0; columnIndex < csvFile.GetColumns(); columnIndex++)
             {
-                Label label = CreateLabel();
+                Label label = CreateLabelForColumn();
                 AddColumnIndexAndHeadersToLabel(dataSourceInformation, headers, columnIndex, label);
                 AddContentToLabel(csvFile, columnIndex, label);
 
@@ -388,7 +390,7 @@ namespace Obfuscator
             return csvFile;
         }
 
-        private Label CreateLabel()
+        private Label CreateLabelForColumn()
         {
             return new Label
             {

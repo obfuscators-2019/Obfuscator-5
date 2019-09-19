@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             this.btnClose = new System.Windows.Forms.Button();
             this.columnSelector = new System.Windows.Forms.Panel();
             this.chkHasHeaders = new System.Windows.Forms.CheckBox();
@@ -38,12 +38,8 @@
             this.txtSqlConnectionString = new System.Windows.Forms.TextBox();
             this.btnConnect = new System.Windows.Forms.Button();
             this.gridCsvInformation = new System.Windows.Forms.DataGridView();
-            this.gridColumnDataSourceType = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.datasourceNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.columnIndexDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.columnNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.btnSelect = new System.Windows.Forms.DataGridViewButtonColumn();
-            this.dataSourceInformationBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.btnAddCsv = new System.Windows.Forms.Button();
             this.comboDbTableNames = new System.Windows.Forms.ComboBox();
             this.btnCreateObuscationOperation = new System.Windows.Forms.Button();
@@ -57,11 +53,17 @@
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
-            this.button1 = new System.Windows.Forms.Button();
+            this.btnNIF = new System.Windows.Forms.Button();
             this.dataGridViewTextBoxColumn1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.btnDNI = new System.Windows.Forms.Button();
+            this.btnNIE = new System.Windows.Forms.Button();
+            this.gridColumnDataSourceType = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.columnIndexDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.columnNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.dataSourceInformationBindingSource = new System.Windows.Forms.BindingSource(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.gridCsvInformation)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.dataSourceInformationBindingSource)).BeginInit();
             this.statusStrip1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dataSourceInformationBindingSource)).BeginInit();
             this.SuspendLayout();
             // 
             // btnClose
@@ -155,38 +157,12 @@
             this.gridCsvInformation.TabIndex = 1;
             this.gridCsvInformation.CellMouseClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.GridCell_Click);
             // 
-            // gridColumnDataSourceType
-            // 
-            this.gridColumnDataSourceType.DataPropertyName = "DataSourceType";
-            this.gridColumnDataSourceType.HeaderText = "Type";
-            this.gridColumnDataSourceType.Name = "gridColumnDataSourceType";
-            this.gridColumnDataSourceType.ReadOnly = true;
-            // 
             // datasourceNameDataGridViewTextBoxColumn
             // 
             this.datasourceNameDataGridViewTextBoxColumn.DataPropertyName = "DataSourceName";
             this.datasourceNameDataGridViewTextBoxColumn.HeaderText = "DataSourceName";
             this.datasourceNameDataGridViewTextBoxColumn.Name = "datasourceNameDataGridViewTextBoxColumn";
             this.datasourceNameDataGridViewTextBoxColumn.Width = 160;
-            // 
-            // columnIndexDataGridViewTextBoxColumn
-            // 
-            this.columnIndexDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.ColumnHeader;
-            this.columnIndexDataGridViewTextBoxColumn.DataPropertyName = "ColumnIndex";
-            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            this.columnIndexDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle1;
-            this.columnIndexDataGridViewTextBoxColumn.HeaderText = "Column";
-            this.columnIndexDataGridViewTextBoxColumn.Name = "columnIndexDataGridViewTextBoxColumn";
-            this.columnIndexDataGridViewTextBoxColumn.ReadOnly = true;
-            this.columnIndexDataGridViewTextBoxColumn.Resizable = System.Windows.Forms.DataGridViewTriState.False;
-            this.columnIndexDataGridViewTextBoxColumn.Width = 67;
-            // 
-            // columnNameDataGridViewTextBoxColumn
-            // 
-            this.columnNameDataGridViewTextBoxColumn.DataPropertyName = "ColumnName";
-            this.columnNameDataGridViewTextBoxColumn.HeaderText = "ColumnName";
-            this.columnNameDataGridViewTextBoxColumn.Name = "columnNameDataGridViewTextBoxColumn";
-            this.columnNameDataGridViewTextBoxColumn.ReadOnly = true;
             // 
             // btnSelect
             // 
@@ -198,14 +174,10 @@
             this.btnSelect.UseColumnTextForButtonValue = true;
             this.btnSelect.Width = 54;
             // 
-            // dataSourceInformationBindingSource
-            // 
-            this.dataSourceInformationBindingSource.DataSource = typeof(Obfuscator.Entities.DataSourceInformation);
-            // 
             // btnAddCsv
             // 
             this.btnAddCsv.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnAddCsv.Location = new System.Drawing.Point(216, 12);
+            this.btnAddCsv.Location = new System.Drawing.Point(216, 11);
             this.btnAddCsv.Name = "btnAddCsv";
             this.btnAddCsv.Size = new System.Drawing.Size(44, 20);
             this.btnAddCsv.TabIndex = 0;
@@ -343,16 +315,16 @@
             this.toolStripStatusLabel1.Size = new System.Drawing.Size(12, 17);
             this.toolStripStatusLabel1.Text = "-";
             // 
-            // button1
+            // btnNIF
             // 
-            this.button1.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button1.Location = new System.Drawing.Point(260, 12);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(44, 20);
-            this.button1.TabIndex = 20;
-            this.button1.Text = "+NIF";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.BtnAddNew_Click);
+            this.btnNIF.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnNIF.Location = new System.Drawing.Point(260, 11);
+            this.btnNIF.Name = "btnNIF";
+            this.btnNIF.Size = new System.Drawing.Size(44, 20);
+            this.btnNIF.TabIndex = 20;
+            this.btnNIF.Text = "+NIF";
+            this.btnNIF.UseVisualStyleBackColor = true;
+            this.btnNIF.Click += new System.EventHandler(this.BtnAddNew_Click);
             // 
             // dataGridViewTextBoxColumn1
             // 
@@ -361,12 +333,66 @@
             this.dataGridViewTextBoxColumn1.Name = "dataGridViewTextBoxColumn1";
             this.dataGridViewTextBoxColumn1.ReadOnly = true;
             // 
+            // btnDNI
+            // 
+            this.btnDNI.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnDNI.Location = new System.Drawing.Point(304, 11);
+            this.btnDNI.Name = "btnDNI";
+            this.btnDNI.Size = new System.Drawing.Size(44, 20);
+            this.btnDNI.TabIndex = 21;
+            this.btnDNI.Text = "+DNI";
+            this.btnDNI.UseVisualStyleBackColor = true;
+            this.btnDNI.Click += new System.EventHandler(this.BtnAddNew_Click);
+            // 
+            // btnNIE
+            // 
+            this.btnNIE.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnNIE.Location = new System.Drawing.Point(348, 11);
+            this.btnNIE.Name = "btnNIE";
+            this.btnNIE.Size = new System.Drawing.Size(44, 20);
+            this.btnNIE.TabIndex = 22;
+            this.btnNIE.Text = "+NIE";
+            this.btnNIE.UseVisualStyleBackColor = true;
+            this.btnNIE.Click += new System.EventHandler(this.BtnAddNew_Click);
+            // 
+            // gridColumnDataSourceType
+            // 
+            this.gridColumnDataSourceType.DataPropertyName = "DataSourceType";
+            this.gridColumnDataSourceType.HeaderText = "Type";
+            this.gridColumnDataSourceType.Name = "gridColumnDataSourceType";
+            this.gridColumnDataSourceType.ReadOnly = true;
+            // 
+            // columnIndexDataGridViewTextBoxColumn
+            // 
+            this.columnIndexDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.ColumnHeader;
+            this.columnIndexDataGridViewTextBoxColumn.DataPropertyName = "ColumnIndex";
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            this.columnIndexDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle2;
+            this.columnIndexDataGridViewTextBoxColumn.HeaderText = "Column";
+            this.columnIndexDataGridViewTextBoxColumn.Name = "columnIndexDataGridViewTextBoxColumn";
+            this.columnIndexDataGridViewTextBoxColumn.ReadOnly = true;
+            this.columnIndexDataGridViewTextBoxColumn.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+            this.columnIndexDataGridViewTextBoxColumn.Width = 67;
+            // 
+            // columnNameDataGridViewTextBoxColumn
+            // 
+            this.columnNameDataGridViewTextBoxColumn.DataPropertyName = "ColumnName";
+            this.columnNameDataGridViewTextBoxColumn.HeaderText = "ColumnName";
+            this.columnNameDataGridViewTextBoxColumn.Name = "columnNameDataGridViewTextBoxColumn";
+            this.columnNameDataGridViewTextBoxColumn.ReadOnly = true;
+            // 
+            // dataSourceInformationBindingSource
+            // 
+            this.dataSourceInformationBindingSource.DataSource = typeof(Obfuscator.Entities.DataSourceInformation);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(954, 615);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.btnNIE);
+            this.Controls.Add(this.btnDNI);
+            this.Controls.Add(this.btnNIF);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.btnRunObfuscationOps);
             this.Controls.Add(this.btnSaveOps);
@@ -389,9 +415,9 @@
             this.Name = "MainForm";
             this.Text = "OFUSCATOR";
             ((System.ComponentModel.ISupportInitialize)(this.gridCsvInformation)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.dataSourceInformationBindingSource)).EndInit();
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dataSourceInformationBindingSource)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -420,13 +446,15 @@
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
         private System.Windows.Forms.ToolStripProgressBar toolStripProgressBar1;
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button btnNIF;
         private System.Windows.Forms.DataGridViewTextBoxColumn gridColumnDataSourceType;
         private System.Windows.Forms.DataGridViewTextBoxColumn datasourceNameDataGridViewTextBoxColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn columnIndexDataGridViewTextBoxColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn columnNameDataGridViewTextBoxColumn;
         private System.Windows.Forms.DataGridViewButtonColumn btnSelect;
         private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn1;
+        private System.Windows.Forms.Button btnDNI;
+        private System.Windows.Forms.Button btnNIE;
     }
 }
 

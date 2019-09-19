@@ -3,6 +3,8 @@
     public enum DataSourceType
     {
         CSV,
-        NIFGenerator
+        NIFGenerator,
+        DNIGenerator,
+        NIEGenerator
     }
 }
