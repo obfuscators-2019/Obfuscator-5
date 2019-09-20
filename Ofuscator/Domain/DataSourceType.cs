@@ -5,6 +5,7 @@
         CSV,
         NIFGenerator,
         DNIGenerator,
-        NIEGenerator
+        NIEGenerator,
+        Scramble
     }
 }

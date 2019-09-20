@@ -57,10 +57,16 @@
             this.dataGridViewTextBoxColumn1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.btnDNI = new System.Windows.Forms.Button();
             this.btnNIE = new System.Windows.Forms.Button();
+            this.btnAddFieldToScramble = new System.Windows.Forms.Button();
+            this.btnRemoveFieldFromScramble = new System.Windows.Forms.Button();
+            this.btnAddGroupFieldToScramble = new System.Windows.Forms.Button();
+            this.label2 = new System.Windows.Forms.Label();
             this.gridColumnDataSourceType = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.columnIndexDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.columnNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataSourceInformationBindingSource = new System.Windows.Forms.BindingSource(this.components);
+            this.btnScramble = new System.Windows.Forms.Button();
+            this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.gridCsvInformation)).BeginInit();
             this.statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataSourceInformationBindingSource)).BeginInit();
@@ -177,11 +183,12 @@
             // btnAddCsv
             // 
             this.btnAddCsv.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnAddCsv.Location = new System.Drawing.Point(216, 11);
+            this.btnAddCsv.Location = new System.Drawing.Point(105, 11);
             this.btnAddCsv.Name = "btnAddCsv";
             this.btnAddCsv.Size = new System.Drawing.Size(44, 20);
             this.btnAddCsv.TabIndex = 0;
             this.btnAddCsv.Text = "+CSV";
+            this.toolTip1.SetToolTip(this.btnAddCsv, "CSV file");
             this.btnAddCsv.UseVisualStyleBackColor = true;
             this.btnAddCsv.Click += new System.EventHandler(this.BtnAddNew_Click);
             // 
@@ -223,9 +230,9 @@
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(12, 16);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(188, 13);
+            this.label1.Size = new System.Drawing.Size(91, 13);
             this.label1.TabIndex = 18;
-            this.label1.Text = "CSV FILES - origin of obfuscation data";
+            this.label1.Text = "DATASOURCES:";
             // 
             // lbObfuscationOps
             // 
@@ -318,11 +325,12 @@
             // btnNIF
             // 
             this.btnNIF.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnNIF.Location = new System.Drawing.Point(260, 11);
+            this.btnNIF.Location = new System.Drawing.Point(149, 11);
             this.btnNIF.Name = "btnNIF";
             this.btnNIF.Size = new System.Drawing.Size(44, 20);
             this.btnNIF.TabIndex = 20;
             this.btnNIF.Text = "+NIF";
+            this.toolTip1.SetToolTip(this.btnNIF, "NIF generator - mix of DNIs and NIEs");
             this.btnNIF.UseVisualStyleBackColor = true;
             this.btnNIF.Click += new System.EventHandler(this.BtnAddNew_Click);
             // 
@@ -336,24 +344,74 @@
             // btnDNI
             // 
             this.btnDNI.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnDNI.Location = new System.Drawing.Point(304, 11);
+            this.btnDNI.Location = new System.Drawing.Point(193, 11);
             this.btnDNI.Name = "btnDNI";
             this.btnDNI.Size = new System.Drawing.Size(44, 20);
             this.btnDNI.TabIndex = 21;
             this.btnDNI.Text = "+DNI";
+            this.toolTip1.SetToolTip(this.btnDNI, "DNI generator");
             this.btnDNI.UseVisualStyleBackColor = true;
             this.btnDNI.Click += new System.EventHandler(this.BtnAddNew_Click);
             // 
             // btnNIE
             // 
             this.btnNIE.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnNIE.Location = new System.Drawing.Point(348, 11);
+            this.btnNIE.Location = new System.Drawing.Point(237, 11);
             this.btnNIE.Name = "btnNIE";
             this.btnNIE.Size = new System.Drawing.Size(44, 20);
             this.btnNIE.TabIndex = 22;
             this.btnNIE.Text = "+NIE";
+            this.toolTip1.SetToolTip(this.btnNIE, "NIE generator");
             this.btnNIE.UseVisualStyleBackColor = true;
             this.btnNIE.Click += new System.EventHandler(this.BtnAddNew_Click);
+            // 
+            // btnAddFieldToScramble
+            // 
+            this.btnAddFieldToScramble.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnAddFieldToScramble.FlatAppearance.BorderColor = System.Drawing.Color.Black;
+            this.btnAddFieldToScramble.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnAddFieldToScramble.Location = new System.Drawing.Point(837, 282);
+            this.btnAddFieldToScramble.Name = "btnAddFieldToScramble";
+            this.btnAddFieldToScramble.Size = new System.Drawing.Size(24, 21);
+            this.btnAddFieldToScramble.TabIndex = 0;
+            this.btnAddFieldToScramble.Text = "+";
+            this.btnAddFieldToScramble.UseVisualStyleBackColor = true;
+            this.btnAddFieldToScramble.Click += new System.EventHandler(this.BtnAddNew_Click);
+            // 
+            // btnRemoveFieldFromScramble
+            // 
+            this.btnRemoveFieldFromScramble.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnRemoveFieldFromScramble.FlatAppearance.BorderColor = System.Drawing.Color.Black;
+            this.btnRemoveFieldFromScramble.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnRemoveFieldFromScramble.Location = new System.Drawing.Point(861, 282);
+            this.btnRemoveFieldFromScramble.Name = "btnRemoveFieldFromScramble";
+            this.btnRemoveFieldFromScramble.Size = new System.Drawing.Size(24, 21);
+            this.btnRemoveFieldFromScramble.TabIndex = 23;
+            this.btnRemoveFieldFromScramble.Text = "-";
+            this.btnRemoveFieldFromScramble.UseVisualStyleBackColor = true;
+            // 
+            // btnAddGroupFieldToScramble
+            // 
+            this.btnAddGroupFieldToScramble.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnAddGroupFieldToScramble.FlatAppearance.BorderColor = System.Drawing.Color.Black;
+            this.btnAddGroupFieldToScramble.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnAddGroupFieldToScramble.Location = new System.Drawing.Point(885, 282);
+            this.btnAddGroupFieldToScramble.Name = "btnAddGroupFieldToScramble";
+            this.btnAddGroupFieldToScramble.Size = new System.Drawing.Size(24, 21);
+            this.btnAddGroupFieldToScramble.TabIndex = 24;
+            this.btnAddGroupFieldToScramble.Text = "( )";
+            this.btnAddGroupFieldToScramble.UseVisualStyleBackColor = true;
+            // 
+            // label2
+            // 
+            this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.label2.AutoSize = true;
+            this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 6F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label2.Location = new System.Drawing.Point(719, 285);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(112, 9);
+            this.label2.TabIndex = 25;
+            this.label2.Text = "SCRAMBLING OPTIONS";
             // 
             // gridColumnDataSourceType
             // 
@@ -385,11 +443,28 @@
             // 
             this.dataSourceInformationBindingSource.DataSource = typeof(Obfuscator.Entities.DataSourceInformation);
             // 
+            // btnScramble
+            // 
+            this.btnScramble.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnScramble.Location = new System.Drawing.Point(281, 11);
+            this.btnScramble.Name = "btnScramble";
+            this.btnScramble.Size = new System.Drawing.Size(44, 20);
+            this.btnScramble.TabIndex = 26;
+            this.btnScramble.Text = "+SCR";
+            this.toolTip1.SetToolTip(this.btnScramble, "Sramble values ofuscation");
+            this.btnScramble.UseVisualStyleBackColor = true;
+            this.btnScramble.Click += new System.EventHandler(this.BtnAddNew_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(954, 615);
+            this.Controls.Add(this.btnScramble);
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.btnAddGroupFieldToScramble);
+            this.Controls.Add(this.btnRemoveFieldFromScramble);
+            this.Controls.Add(this.btnAddFieldToScramble);
             this.Controls.Add(this.btnNIE);
             this.Controls.Add(this.btnDNI);
             this.Controls.Add(this.btnNIF);
@@ -398,7 +473,6 @@
             this.Controls.Add(this.btnSaveOps);
             this.Controls.Add(this.btnLoadOps);
             this.Controls.Add(this.btnClearOps);
-            this.Controls.Add(this.lbObfuscationOps);
             this.Controls.Add(this.comboDbField);
             this.Controls.Add(this.btnCreateObuscationOperation);
             this.Controls.Add(this.comboDbTableNames);
@@ -412,6 +486,8 @@
             this.Controls.Add(this.btnClose);
             this.Controls.Add(this.txtSqlConnectionString);
             this.Controls.Add(this.label9);
+            this.Controls.Add(this.lbObfuscationOps);
+            this.MinimumSize = new System.Drawing.Size(970, 654);
             this.Name = "MainForm";
             this.Text = "OFUSCATOR";
             ((System.ComponentModel.ISupportInitialize)(this.gridCsvInformation)).EndInit();
@@ -455,6 +531,12 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn1;
         private System.Windows.Forms.Button btnDNI;
         private System.Windows.Forms.Button btnNIE;
+        private System.Windows.Forms.Button btnAddFieldToScramble;
+        private System.Windows.Forms.Button btnRemoveFieldFromScramble;
+        private System.Windows.Forms.Button btnAddGroupFieldToScramble;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.ToolTip toolTip1;
+        private System.Windows.Forms.Button btnScramble;
     }
 }
 

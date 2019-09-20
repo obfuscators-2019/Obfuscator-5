@@ -44,6 +44,7 @@ namespace Obfuscator
             else if (sender == btnNIF) SetGeneratorAsDatasource(DataSourceType.NIFGenerator);
             else if (sender == btnDNI) SetGeneratorAsDatasource(DataSourceType.DNIGenerator);
             else if (sender == btnNIE) SetGeneratorAsDatasource(DataSourceType.NIEGenerator);
+            else if (sender == btnScramble) SetGeneratorAsDatasource(DataSourceType.Scramble);
         }
 
         private void GridCell_Click(object sender, DataGridViewCellMouseEventArgs e)
