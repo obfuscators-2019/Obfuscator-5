@@ -61,12 +61,12 @@
             this.btnRemoveFieldFromScramble = new System.Windows.Forms.Button();
             this.btnAddGroupFieldToScramble = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
+            this.btnScramble = new System.Windows.Forms.Button();
+            this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.gridColumnDataSourceType = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.columnIndexDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.columnNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataSourceInformationBindingSource = new System.Windows.Forms.BindingSource(this.components);
-            this.btnScramble = new System.Windows.Forms.Button();
-            this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.gridCsvInformation)).BeginInit();
             this.statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataSourceInformationBindingSource)).BeginInit();
@@ -375,8 +375,9 @@
             this.btnAddFieldToScramble.Size = new System.Drawing.Size(24, 21);
             this.btnAddFieldToScramble.TabIndex = 0;
             this.btnAddFieldToScramble.Text = "+";
+            this.toolTip1.SetToolTip(this.btnAddFieldToScramble, "Scramble values on this column");
             this.btnAddFieldToScramble.UseVisualStyleBackColor = true;
-            this.btnAddFieldToScramble.Click += new System.EventHandler(this.BtnAddNew_Click);
+            this.btnAddFieldToScramble.Click += new System.EventHandler(this.BtnEditScrambleOperation_Click);
             // 
             // btnRemoveFieldFromScramble
             // 
@@ -388,7 +389,9 @@
             this.btnRemoveFieldFromScramble.Size = new System.Drawing.Size(24, 21);
             this.btnRemoveFieldFromScramble.TabIndex = 23;
             this.btnRemoveFieldFromScramble.Text = "-";
+            this.toolTip1.SetToolTip(this.btnRemoveFieldFromScramble, "Don0t scramble values of this column");
             this.btnRemoveFieldFromScramble.UseVisualStyleBackColor = true;
+            this.btnRemoveFieldFromScramble.Click += new System.EventHandler(this.BtnEditScrambleOperation_Click);
             // 
             // btnAddGroupFieldToScramble
             // 
@@ -400,7 +403,9 @@
             this.btnAddGroupFieldToScramble.Size = new System.Drawing.Size(24, 21);
             this.btnAddGroupFieldToScramble.TabIndex = 24;
             this.btnAddGroupFieldToScramble.Text = "( )";
+            this.toolTip1.SetToolTip(this.btnAddGroupFieldToScramble, "GROUP BY this column to scramble group values");
             this.btnAddGroupFieldToScramble.UseVisualStyleBackColor = true;
+            this.btnAddGroupFieldToScramble.Click += new System.EventHandler(this.BtnEditScrambleOperation_Click);
             // 
             // label2
             // 
@@ -412,6 +417,18 @@
             this.label2.Size = new System.Drawing.Size(112, 9);
             this.label2.TabIndex = 25;
             this.label2.Text = "SCRAMBLING OPTIONS";
+            // 
+            // btnScramble
+            // 
+            this.btnScramble.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnScramble.Location = new System.Drawing.Point(281, 11);
+            this.btnScramble.Name = "btnScramble";
+            this.btnScramble.Size = new System.Drawing.Size(44, 20);
+            this.btnScramble.TabIndex = 26;
+            this.btnScramble.Text = "+SCR";
+            this.toolTip1.SetToolTip(this.btnScramble, "Sramble values ofuscation");
+            this.btnScramble.UseVisualStyleBackColor = true;
+            this.btnScramble.Click += new System.EventHandler(this.BtnAddNew_Click);
             // 
             // gridColumnDataSourceType
             // 
@@ -442,18 +459,6 @@
             // dataSourceInformationBindingSource
             // 
             this.dataSourceInformationBindingSource.DataSource = typeof(Obfuscator.Entities.DataSourceInformation);
-            // 
-            // btnScramble
-            // 
-            this.btnScramble.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnScramble.Location = new System.Drawing.Point(281, 11);
-            this.btnScramble.Name = "btnScramble";
-            this.btnScramble.Size = new System.Drawing.Size(44, 20);
-            this.btnScramble.TabIndex = 26;
-            this.btnScramble.Text = "+SCR";
-            this.toolTip1.SetToolTip(this.btnScramble, "Sramble values ofuscation");
-            this.btnScramble.UseVisualStyleBackColor = true;
-            this.btnScramble.Click += new System.EventHandler(this.BtnAddNew_Click);
             // 
             // MainForm
             // 

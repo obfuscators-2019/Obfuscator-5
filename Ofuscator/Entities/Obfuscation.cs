@@ -6,6 +6,7 @@ namespace Obfuscator.Entities
     public class Obfuscation
     {
         public DataSourceInformation Origin { get; set; }
-        public DbInfo Destination { get; set; }
+
+        public DbTableInfo Destination { get; set; }
     }
 }

@@ -240,6 +240,32 @@ namespace Obfuscator
             lbObfuscationOps.Refresh();
         }
 
+        private void BtnEditScrambleOperation_Click(object sender, EventArgs e)
+        {
+            if (!EnoughInformationToEditScrambleOp((Button)sender)) return;
+
+            var obfuscationOps = GetObfuscationOps();
+            var currentObfuscationOp = (ObfuscationParser)lbObfuscationOps.SelectedItem;
+
+            var dbColumnInfo = (DbColumnInfo)comboDbField.SelectedItem;
+            if (sender == btnAddFieldToScramble)
+            {
+                dbColumnInfo.IsGroupColumn = false;
+                currentObfuscationOp.Destination.Columns.Add(dbColumnInfo);
+            }
+            else if (sender == btnRemoveFieldFromScramble)
+            {
+                currentObfuscationOp.Destination.Columns.RemoveAll(c => c.Name == dbColumnInfo.Name);
+            }
+            else if (sender == btnAddGroupFieldToScramble)
+            {
+                dbColumnInfo.IsGroupColumn = true;
+                currentObfuscationOp.Destination.Columns.Add(dbColumnInfo);
+            }
+
+            obfuscationOps.ResetItem(lbObfuscationOps.SelectedIndex);
+        }
+
         private static DialogResult ConfirmToSelectANewFile(DataSourceInformation dataSourceInformation)
         {
             var userResponseToChangeFile = DialogResult.Yes;
@@ -450,11 +476,11 @@ namespace Obfuscator
             return new ObfuscationParser()
             {
                 Origin = (DataSourceInformation)gridCsvInformation.SelectedRows[0].DataBoundItem,
-                Destination = new DbInfo
+                Destination = new DbTableInfo
                 {
                     ConnectionString = txtSqlConnectionString.Text,
-                    TableName = comboDbTableNames.Text,
-                    ColumnInfo = (DbColumnInfo)comboDbField.SelectedItem,
+                    Name = comboDbTableNames.Text,
+                    Columns = new List<DbColumnInfo> { (DbColumnInfo)comboDbField.SelectedItem }
                 }
             };
         }
@@ -476,6 +502,60 @@ namespace Obfuscator
                 MessageBox.Show("Select the database info - what will be obfuscated\n(CONNECT TO A DATABASE, SELECT TABLE AND COLUMN)", "INFORMATION", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return false;
             }
+            return true;
+        }
+
+        private bool EnoughInformationToEditScrambleOp(Button sender)
+        {
+            var currentObfuscationOp = (ObfuscationParser)lbObfuscationOps?.SelectedItem;
+
+            if (currentObfuscationOp?.Origin.DataSourceType != DataSourceType.Scramble)
+            {
+                MessageBox.Show("This operation can only be done over a Scrambling Ofuscation", "INFORMATION", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return false;
+            }
+
+            if (txtSqlConnectionString.Text != currentObfuscationOp.Destination.ConnectionString)
+            {
+                MessageBox.Show("Connection string does not match on the selected obfuscation operation", "INFORMATION", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return false;
+            }
+
+            var table = (DbTableInfo)comboDbTableNames.SelectedItem;
+            if (table?.Name != currentObfuscationOp.Destination.Name)
+            {
+                MessageBox.Show("Selected destination table does not match on the selected obfuscation operation", "INFORMATION", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return false;
+            }
+
+            if (comboDbField.Items?.Count == 0 || comboDbField.SelectedIndex < 0)
+            {
+                MessageBox.Show("Select the database info - what will be obfuscated\n(CONNECT TO A DATABASE, SELECT TABLE AND COLUMN)", "INFORMATION", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return false;
+            }
+            else
+            {
+                var selectedColumn = (DbColumnInfo)comboDbField.SelectedItem;
+                if ((sender == btnAddFieldToScramble || sender == btnAddGroupFieldToScramble) && currentObfuscationOp.Destination.Columns.Any(x => x.Name == selectedColumn.Name))
+                {
+                    MessageBox.Show("Column is already selected either for scramble or for grouping.\nPlease remove it before using it again in the same obfuscation operation", "INFORMATION", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return false;
+                }
+                if (sender == btnRemoveFieldFromScramble)
+                {
+                    if (!currentObfuscationOp.Destination.Columns.Any(x => x.Name == selectedColumn.Name))
+                    {
+                        MessageBox.Show("Can't remove a column that was not previously selected for scramble", "INFORMATION", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        return false;
+                    }
+                    else if (currentObfuscationOp.Destination.Columns.Count(c => !c.IsGroupColumn) == 1)
+                    {
+                        MessageBox.Show("Can't leave an obfuscation operation without columns to operate in", "INFORMATION", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        return false;
+                    }
+                }
+            }
+
             return true;
         }
 

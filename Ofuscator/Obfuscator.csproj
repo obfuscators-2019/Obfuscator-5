@@ -63,7 +63,6 @@
     <Compile Include="Domain\SqlDatabase.cs" />
     <Compile Include="Entities\DbColumnInfo.cs" />
     <Compile Include="Entities\DataSourceInformation.cs" />
-    <Compile Include="Entities\DbInfo.cs" />
     <Compile Include="Entities\Obfuscation.cs" />
     <Compile Include="Entities\DbTableInfo.cs" />
     <Compile Include="MainForm.cs">

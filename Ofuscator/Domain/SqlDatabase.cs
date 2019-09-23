@@ -246,7 +246,7 @@ namespace Obfuscator.Domain
             if (status == null) status = new StatusInformation();
 
             dataSet = OfuscateDataset(obfuscationOperation, originData, dataSet);
-            status.Message = $"...Saving obfuscation on {obfuscationOperation.Destination.TableName}";
+            status.Message = $"...Saving obfuscation on {obfuscationOperation.Destination.Name}";
             StatusChanged?.Invoke(status, null);
             PersistOfuscation(obfuscationOperation, dataSet);
         }
@@ -262,7 +262,7 @@ namespace Obfuscator.Domain
             {
                 var status = new StatusInformation
                 {
-                    Message = $"Obfuscating {obfuscation.Destination.TableName}.{obfuscation.Destination.ColumnInfo.Name}",
+                    Message = $"Obfuscating {obfuscation.Destination.Name}.({string.Join(",", obfuscation.Destination.Columns.Select(c => c.Name))})",
                     Progress = ++operationIndex,
                     Total = numberOfOperations
                 };
@@ -278,10 +278,10 @@ namespace Obfuscator.Domain
             var sqlConnection = new SqlConnection(obfuscationOperation.Destination.ConnectionString);
             sqlConnection.Open();
 
-            var idColumns = GetIdentityColumns(sqlConnection, obfuscationOperation.Destination.TableName);
-            var updateQuery = $"UPDATE {obfuscationOperation.Destination.TableName}" +
-                $" SET {obfuscationOperation.Destination.ColumnInfo.Name} = @param_{obfuscationOperation.Destination.ColumnInfo.Name}" +
-                $" WHERE {obfuscationOperation.Destination.ColumnInfo.Name} = @param_old_{obfuscationOperation.Destination.ColumnInfo.Name}";
+            var idColumns = GetIdentityColumns(sqlConnection, obfuscationOperation.Destination.Name);
+            var updateQuery = $"UPDATE {obfuscationOperation.Destination.Name}" +
+                $" SET {obfuscationOperation.Destination.Columns[0].Name} = @param_{obfuscationOperation.Destination.Columns[0].Name}" +
+                $" WHERE {obfuscationOperation.Destination.Columns[0].Name} = @param_old_{obfuscationOperation.Destination.Columns[0].Name}";
             if (idColumns.Any()) 
                 foreach (var idColumn in idColumns) updateQuery += $" AND {idColumn}=@param_{idColumn}";
 
@@ -290,8 +290,8 @@ namespace Obfuscator.Domain
                 var updateCommand = sqlConnection.CreateCommand();
                 updateCommand.CommandType = CommandType.Text;
                 updateCommand.CommandText = updateQuery;
-                updateCommand.Parameters.AddWithValue($"param_{obfuscationOperation.Destination.ColumnInfo.Name}", row[obfuscationOperation.Destination.ColumnInfo.Name]);
-                updateCommand.Parameters.AddWithValue($"param_old_{obfuscationOperation.Destination.ColumnInfo.Name}", row[obfuscationOperation.Destination.ColumnInfo.Name, DataRowVersion.Original]);
+                updateCommand.Parameters.AddWithValue($"param_{obfuscationOperation.Destination.Columns[0].Name}", row[obfuscationOperation.Destination.Columns[0].Name]);
+                updateCommand.Parameters.AddWithValue($"param_old_{obfuscationOperation.Destination.Columns[0].Name}", row[obfuscationOperation.Destination.Columns[0].Name, DataRowVersion.Original]);
                 if (idColumns.Any())
                     foreach (var idColumn in idColumns) updateCommand.Parameters.AddWithValue($"param_{idColumn}", row[idColumn]);
                 updateCommand.ExecuteNonQuery();
@@ -307,10 +307,10 @@ namespace Obfuscator.Domain
             foreach (var row in dataSet.Tables[0].Rows)
             {
                 var dataRow = (DataRow)row;
-                if (dataRow[obfuscationOperation.Destination.ColumnInfo.Name] is DateTime)
-                    dataRow[obfuscationOperation.Destination.ColumnInfo.Name] = ParseDateTime(data.ElementAt(dataListIndex));
+                if (dataRow[obfuscationOperation.Destination.Columns[0].Name] is DateTime)
+                    dataRow[obfuscationOperation.Destination.Columns[0].Name] = ParseDateTime(data.ElementAt(dataListIndex));
                 else
-                    dataRow[obfuscationOperation.Destination.ColumnInfo.Name] = data.ElementAt(dataListIndex);
+                    dataRow[obfuscationOperation.Destination.Columns[0].Name] = data.ElementAt(dataListIndex);
 
                 dataListIndex++;
                 if (dataListIndex > dataListMaxIndex) dataListIndex = 0;
@@ -343,7 +343,7 @@ namespace Obfuscator.Domain
         {
             var sqlConnection = new SqlConnection(obfuscationOperation.Destination.ConnectionString);
             DataSet dataSet = new DataSet();
-            SqlDataAdapter sqlDataAdapter = new SqlDataAdapter($"SELECT * FROM {obfuscationOperation.Destination.TableName}", sqlConnection);
+            SqlDataAdapter sqlDataAdapter = new SqlDataAdapter($"SELECT * FROM {obfuscationOperation.Destination.Name}", sqlConnection);
             sqlDataAdapter.Fill(dataSet);
             return dataSet;
         }

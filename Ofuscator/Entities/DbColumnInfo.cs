@@ -9,5 +9,6 @@ namespace Obfuscator.Entities
         public bool IsNullable { get; set; }
         public string DataType { get; set; }
         public int CharacterMaxLength { get; set; }
+        public bool IsGroupColumn { get; set; } = false;
     }
 }
