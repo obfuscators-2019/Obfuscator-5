@@ -548,7 +548,7 @@ namespace Obfuscator
                         MessageBox.Show("Can't remove a column that was not previously selected for scramble", "INFORMATION", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         return false;
                     }
-                    else if (currentObfuscationOp.Destination.Columns.Count(c => !c.IsGroupColumn) == 1)
+                    else if (!selectedColumn.IsGroupColumn && currentObfuscationOp.Destination.Columns.Count(c => !c.IsGroupColumn) == 1)
                     {
                         MessageBox.Show("Can't leave an obfuscation operation without columns to operate in", "INFORMATION", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         return false;

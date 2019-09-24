@@ -6,11 +6,62 @@ using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Obfuscator.Domain
 {
+    public static class CustomExtensions
+    {
+        public static void Shuffle<T>(this IList<T> list)
+        {
+            RNGCryptoServiceProvider provider = new RNGCryptoServiceProvider();
+            int n = list.Count;
+            while (n > 1)
+            {
+                byte[] box = new byte[1];
+                do provider.GetBytes(box);
+                while (!(box[0] < n * (Byte.MaxValue / n)));
+                int k = (box[0] % n);
+                n--;
+                T value = list[k];
+                list[k] = list[n];
+                list[n] = value;
+            }
+        }
+    }
+
+    internal class DataRowComparer : IEqualityComparer<DataRow>
+    {
+        public bool Equals(DataRow x, DataRow y)
+        {
+            if (Object.ReferenceEquals(x, y)) return true;
+
+            if (Object.ReferenceEquals(x, null) || Object.ReferenceEquals(y, null)) return false;
+
+            if (x.ItemArray.Count() != y.ItemArray.Count()) return false;
+
+            for (int i = 0; i < x.ItemArray.Count(); i++)
+                if (!x.ItemArray[i].Equals(y.ItemArray[i])) return false;
+
+            return true;
+        }
+
+        public int GetHashCode(DataRow dataRow)
+        {
+            if (Object.ReferenceEquals(dataRow, null)) return 0;
+            if (dataRow.ItemArray.Count() == 0) return dataRow.GetHashCode();
+
+            int hashCode = 0;
+
+            for (int i = 0; i < dataRow.ItemArray.Count(); i++)
+                hashCode ^= (dataRow.ItemArray[i] == null ? 0 : dataRow.ItemArray[i].GetHashCode());
+
+            return hashCode;
+        }
+    }
+
     public class SqlDatabase
     {
         private static List<string> _knownDateTimeFormats = null;
@@ -88,6 +139,76 @@ namespace Obfuscator.Domain
             return this.Tables;
         }
 
+        public void RetrieveTableColumns(DbTableInfo table)
+        {
+            RetrieveTableColumns(table, null, null);
+        }
+
+        public string GetDatabaseName()
+        {
+            var connection = new SqlConnection(this.ConnectionString);
+            return connection.Database;
+        }
+
+        public void RunOperations(IEnumerable<Obfuscation> obfuscationOps)
+        {
+            StatusChanged?.Invoke(new StatusInformation {Message = $"Starting operations..."}, null);
+
+            var operationIndex = 0;
+            var numberOfOperations = obfuscationOps.Count();
+
+            foreach (var obfuscation in obfuscationOps)
+            {
+                var status = new StatusInformation
+                {
+                    Message = $"Obfuscating {obfuscation.Destination.Name}.({string.Join(",", obfuscation.Destination.Columns.Select(c => c.Name))})",
+                    Progress = ++operationIndex,
+                    Total = numberOfOperations
+                };
+                StatusChanged?.Invoke(status, null);
+                RunOperation(obfuscation, status);
+            }
+
+            StatusChanged?.Invoke(new StatusInformation { Message = $"DONE" }, null);
+        }
+
+        public void RunOperation(Obfuscation obfuscationOperation, StatusInformation status = null)
+        {
+            IEnumerable<string> originData = null;
+
+            var dataSet = GetTableData(obfuscationOperation);
+
+            switch (obfuscationOperation.Origin.DataSourceType)
+            {
+                case DataSourceType.CSV:
+                    originData = GetSourceData(obfuscationOperation);
+                    break;
+                case DataSourceType.DNIGenerator:
+                    originData = DniNie.GenerateDNI(dataSet.Tables[0].Rows.Count);
+                    break;
+                case DataSourceType.NIEGenerator:
+                    originData = DniNie.GenerateNIE(dataSet.Tables[0].Rows.Count);
+                    break;
+                case DataSourceType.NIFGenerator:
+                    originData = DniNie.GenerateNIF(dataSet.Tables[0].Rows.Count);
+                    break;
+                case DataSourceType.Scramble:
+                    var dataTableScrambled = ScrambleDataSet(obfuscationOperation.Destination, dataSet);
+                    return;
+                    break;
+                default:
+                    originData = new List<string>();
+                    break;
+            }
+
+            if (status == null) status = new StatusInformation();
+
+            dataSet = OfuscateDataset(obfuscationOperation, originData, dataSet);
+            status.Message = $"...Saving obfuscation on {obfuscationOperation.Destination.Name}";
+            StatusChanged?.Invoke(status, null);
+            PersistOfuscation(obfuscationOperation, dataSet);
+        }
+
         private void RetrieveTables(SqlConnection connection)
         {
             this.Tables = new List<DbTableInfo>();
@@ -119,11 +240,6 @@ namespace Obfuscator.Domain
                 StatusChanged?.Invoke(new StatusInformation { Message = $"DONE" }, null);
             });
             task.Start();
-        }
-
-        public void RetrieveTableColumns(DbTableInfo table)
-        {
-            RetrieveTableColumns(table, null, null);
         }
 
         private void RetrieveTableColumns(SqlConnection connection)
@@ -212,67 +328,6 @@ namespace Obfuscator.Domain
             return columns;
         }
 
-        public string GetDatabaseName()
-        {
-            var connection = new SqlConnection(this.ConnectionString);
-            return connection.Database;
-        }
-
-        public void RunOperation(Obfuscation obfuscationOperation, StatusInformation status = null)
-        {
-            IEnumerable<string> originData;
-
-            var dataSet = GetTableData(obfuscationOperation);
-
-            switch (obfuscationOperation.Origin.DataSourceType)
-            {
-                case DataSourceType.CSV:
-                    originData = GetSourceData(obfuscationOperation);
-                    break;
-                case DataSourceType.DNIGenerator:
-                    originData = DniNie.GenerateDNI(dataSet.Tables[0].Rows.Count);
-                    break;
-                case DataSourceType.NIEGenerator:
-                    originData = DniNie.GenerateNIE(dataSet.Tables[0].Rows.Count);
-                    break;
-                case DataSourceType.NIFGenerator:
-                    originData = DniNie.GenerateNIF(dataSet.Tables[0].Rows.Count);
-                    break;
-                default:
-                    originData = new List<string>();
-                    break;
-            }
-
-            if (status == null) status = new StatusInformation();
-
-            dataSet = OfuscateDataset(obfuscationOperation, originData, dataSet);
-            status.Message = $"...Saving obfuscation on {obfuscationOperation.Destination.Name}";
-            StatusChanged?.Invoke(status, null);
-            PersistOfuscation(obfuscationOperation, dataSet);
-        }
-
-        public void RunOperations(IEnumerable<Obfuscation> obfuscationOps)
-        {
-            StatusChanged?.Invoke(new StatusInformation {Message = $"Starting operations..."}, null);
-
-            var operationIndex = 0;
-            var numberOfOperations = obfuscationOps.Count();
-
-            foreach (var obfuscation in obfuscationOps)
-            {
-                var status = new StatusInformation
-                {
-                    Message = $"Obfuscating {obfuscation.Destination.Name}.({string.Join(",", obfuscation.Destination.Columns.Select(c => c.Name))})",
-                    Progress = ++operationIndex,
-                    Total = numberOfOperations
-                };
-                StatusChanged?.Invoke(status, null);
-                RunOperation(obfuscation, status);
-            }
-
-            StatusChanged?.Invoke(new StatusInformation { Message = $"DONE" }, null);
-        }
-
         private void PersistOfuscation(Obfuscation obfuscationOperation, DataSet dataSet)
         {
             var sqlConnection = new SqlConnection(obfuscationOperation.Destination.ConnectionString);
@@ -319,6 +374,63 @@ namespace Obfuscator.Domain
             return dataSet;
         }
 
+        private DataTable ScrambleDataSet(DbTableInfo destination, DataSet dataSet)
+        {
+            var scrambledResult = dataSet.Tables[0].Copy();
+            scrambledResult.Clear();
+            var scrambleColumns = destination.Columns.Where(c => !c.IsGroupColumn).ToList();
+
+            if (destination.Columns.Any(c => c.IsGroupColumn))
+            {
+                var groupColumns = destination.Columns.Where(c => c.IsGroupColumn).ToList();
+                var distinctValueGroups = GetColumns(dataSet.Tables[0], groupColumns)
+                    .AsEnumerable()
+                    .Distinct(new DataRowComparer());
+
+                foreach (var valueGroup in distinctValueGroups)
+                {
+                    var filter = string.Empty;
+                    for (int i = 0; i < groupColumns.Count(); i++)
+                        filter += $"AND {groupColumns[i].Name}={valueGroup[i].ToString()} ";
+
+                    var filteredDataTable = dataSet.Tables[0].Select(filter.Substring(3)).CopyToDataTable();
+                    ScrambleColumnValues(scrambleColumns, filteredDataTable, scrambledResult);
+                }
+            }
+            else
+                ScrambleColumnValues(scrambleColumns, dataSet.Tables[0], scrambledResult);
+
+            return scrambledResult;
+        }
+
+        private void ScrambleColumnValues(List<DbColumnInfo> columnsToScramble, DataTable dataTableToScramble, DataTable scrambledResult)
+        {
+            var scrambledRows = GetColumns(dataTableToScramble, columnsToScramble)
+                .AsEnumerable()
+                .OrderBy(dr => Guid.NewGuid())
+                .ToList();
+
+            for (int i = 0; i < dataTableToScramble.Rows.Count; i++)
+            {
+                foreach (var column in columnsToScramble)
+                    dataTableToScramble.Rows[i][column.Name] = scrambledRows[i][column.Name];
+
+                scrambledResult.Rows.Add(dataTableToScramble.Rows[i].ItemArray);
+            }
+        }
+
+        private DataTable GetColumns(DataTable dataTable, IEnumerable<DbColumnInfo> groupColumns)
+        {
+            var groupColumnsTable = dataTable.AsEnumerable().CopyToDataTable();
+            foreach (DataColumn dataColumn in dataTable.Columns)
+            {
+                if (!groupColumns.Any(gc => gc.Name == dataColumn.ColumnName))
+                    groupColumnsTable.Columns.Remove(dataColumn.ColumnName);
+            }
+
+            return groupColumnsTable;
+        }        
+
         private DateTime ParseDateTime(String value)
         {
             DateTime dateValue;
@@ -341,26 +453,39 @@ namespace Obfuscator.Domain
 
         private DataSet GetTableData(Obfuscation obfuscationOperation)
         {
+            var sqlQuery = $"SELECT * FROM {obfuscationOperation.Destination.Name}";
+
+            sqlQuery = AddOrderClauseToQuery(obfuscationOperation, sqlQuery);
+
             var sqlConnection = new SqlConnection(obfuscationOperation.Destination.ConnectionString);
             DataSet dataSet = new DataSet();
-            SqlDataAdapter sqlDataAdapter = new SqlDataAdapter($"SELECT * FROM {obfuscationOperation.Destination.Name}", sqlConnection);
+            SqlDataAdapter sqlDataAdapter = new SqlDataAdapter(sqlQuery, sqlConnection);
             sqlDataAdapter.Fill(dataSet);
+
             return dataSet;
+        }
+
+        private static string AddOrderClauseToQuery(Obfuscation obfuscationOperation, string sqlQuery)
+        {
+            var orderByClause = string.Empty;
+            foreach (var columnInfo in obfuscationOperation.Destination.Columns.Where(c => c.IsGroupColumn))
+                orderByClause += $", " + columnInfo.Name;
+            if (orderByClause.Length > 0)
+                sqlQuery += " ORDER BY " + orderByClause.Substring(1);
+
+            return sqlQuery;
         }
 
         private IEnumerable<string> GetSourceData(Obfuscation obfuscationOperation)
         {
-            if (obfuscationOperation.Origin.DataSourceType == DataSourceType.CSV)
-            {
-                var csvFile = new CsvFile();
-                csvFile.ReadFile(obfuscationOperation.Origin.DataSourceName);
-                var columnContent = csvFile.GetContent(obfuscationOperation.Origin.ColumnIndex);
-                return columnContent;
-            }
-            else
-            {
+            if (obfuscationOperation.Origin.DataSourceType != DataSourceType.CSV)
                 return null;
-            }
+
+            var csvFile = new CsvFile();
+            csvFile.ReadFile(obfuscationOperation.Origin.DataSourceName);
+            var columnContent = csvFile.GetContent(obfuscationOperation.Origin.ColumnIndex);
+            return columnContent;
         }
     }
+
 }
