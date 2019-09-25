@@ -1,5 +1,6 @@
 ﻿using Obfuscator.Domain;
 using Obfuscator.Entities;
+using Obfuscator.Services;
 using Obfuscator.UI;
 using System;
 using System.Collections.Generic;
@@ -97,14 +98,17 @@ namespace Obfuscator
         {
             try
             {
-                var sqlDb = new SqlDatabase { ConnectionString = txtSqlConnectionString.Text };
-                sqlDb.StatusChanged += (callbackInfo, callbackArgs) =>
-                {
-                    var statusInformation = (SqlDatabase.StatusInformation)callbackInfo;
-                    SetStatus(statusInformation.Message, statusInformation.Progress, statusInformation.Total);
+                var dataPersistence = new SqlDataPersistence {
+                    ConnectionString = txtSqlConnectionString.Text,
+                    StatusChanged = StatusInformationChanged,
                 };
 
-                var tables = sqlDb.RetrieveDatabaseInfo();
+                var obfuscation = new Obfuscation {
+                    DataPersistence = dataPersistence,
+                    StatusChanged = StatusInformationChanged,
+                };
+
+                var tables = obfuscation.RetrieveDatabaseInfo();
 
                 InitializeComboDatabaseTableNames();
                 comboDbTableNames.DataSource = tables;
@@ -120,6 +124,13 @@ namespace Obfuscator
                 InitializeComboDatabaseTableNames();
                 InitializeComboDatabaseFields();
             }
+        }
+
+        private void StatusInformationChanged(object callbackInfo, EventArgs e)
+        {
+            var statusInformation = (StatusInformation)callbackInfo;
+            SetStatus(statusInformation.Message, statusInformation.Progress, statusInformation.Total);
+
         }
 
         private void BtnClearOps_Click(object sender, EventArgs e)
@@ -174,15 +185,14 @@ namespace Obfuscator
 
         private void BtnRunObfuscationOps_Click(object sender, EventArgs e)
         {
-            var sqlDb = new SqlDatabase();
-            sqlDb.StatusChanged += (callbackInfo, callbackArgs) =>
+            var ofuscation = new Obfuscation
             {
-                var statusInformation = (SqlDatabase.StatusInformation)callbackInfo;
-                SetStatus(statusInformation.Message, statusInformation.Progress, statusInformation.Total);
+                StatusChanged = StatusInformationChanged,
+                DataPersistence = new SqlDataPersistence(),
             };
 
             var obfuscationOps = GetObfuscationOps();
-            sqlDb.RunOperations(obfuscationOps);
+            ofuscation.RunOperations(obfuscationOps);
         }
 
         private void BtnSaveOps_Click(object sender, EventArgs e)
@@ -220,7 +230,7 @@ namespace Obfuscator
             if (table != null)
             {
                 if (table.Columns == null || table.Columns.Count == 0)
-                    (new SqlDatabase { ConnectionString = table.ConnectionString }).RetrieveTableColumns(table);
+                    (new Obfuscation { DataPersistence = new SqlDataPersistence { ConnectionString = table.ConnectionString } }).RetrieveTableColumns(table);
                 
                 if (table.Columns != null && table.Columns.Count > 0)
                 {

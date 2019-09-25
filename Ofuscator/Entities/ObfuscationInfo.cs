@@ -3,7 +3,7 @@ using System;
 
 namespace Obfuscator.Entities
 {
-    public class Obfuscation
+    public class ObfuscationInfo
     {
         public DataSourceInformation Origin { get; set; }
 

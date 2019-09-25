@@ -1,5 +1,6 @@
 ﻿using Obfuscator.Domain;
 using Obfuscator.Entities;
+using Obfuscator.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,20 +24,20 @@ namespace Obfuscator
 
         internal void RunOperations()
         {
-            var sqlDb = new SqlDatabase();
-            sqlDb.StatusChanged += ReportProgressToConsole;
-            IEnumerable<Obfuscation> obfuscationOps = LoadOperations();
-            sqlDb.RunOperations(obfuscationOps);
+            var ofuscation = new Obfuscation { DataPersistence = new SqlDataPersistence() };
+            ofuscation.StatusChanged += ReportProgressToConsole;
+            IEnumerable<ObfuscationInfo> obfuscationOps = LoadOperations();
+            ofuscation.RunOperations(obfuscationOps);
         }
 
-        private void ReportProgressToConsole(object sender, EventArgs e)
+        private void ReportProgressToConsole(object callbackInformation, EventArgs e)
         {
-            var statusInformation = (SqlDatabase.StatusInformation)sender;
+            var statusInformation = (StatusInformation)callbackInformation;
 
             Console.WriteLine($"{statusInformation.Message}: {statusInformation.Progress}/{statusInformation.Total}");
         }
 
-        private IEnumerable<Entities.Obfuscation> LoadOperations()
+        private IEnumerable<Entities.ObfuscationInfo> LoadOperations()
         {
             var serializer = new FileSerializer();
             var obfuscationOps = serializer.LoadObfuscationOps(fileOfuscationOps);

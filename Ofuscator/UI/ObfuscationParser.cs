@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Obfuscator.Domain;
 using Obfuscator.Entities;
+using Obfuscator.Services;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,11 +11,11 @@ using System.Threading.Tasks;
 
 namespace Obfuscator.UI
 {
-    public class ObfuscationParser : Obfuscation
+    public class ObfuscationParser : ObfuscationInfo
     {
         public ObfuscationParser() {}
 
-        public ObfuscationParser(Obfuscation obfuscationOperation)
+        public ObfuscationParser(ObfuscationInfo obfuscationOperation)
         {
             this.Origin = obfuscationOperation.Origin;
             this.Destination = obfuscationOperation.Destination;
@@ -35,7 +36,7 @@ namespace Obfuscator.UI
                     originInformation += $" File(\"{csvFileName}\").Column({columnIndex}{columnName})";
                 }
 
-                var sqlDatabase = new SqlDatabase { ConnectionString = Destination.ConnectionString };
+                var sqlDatabase = new SqlDataPersistence { ConnectionString = Destination.ConnectionString };
                 string databaseName = sqlDatabase.GetDatabaseName();
                 string tableName = Destination.Name.ToUpper();
 
