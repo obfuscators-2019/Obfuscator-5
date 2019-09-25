@@ -6,6 +6,6 @@
         NIFGenerator,
         DNIGenerator,
         NIEGenerator,
-        Scramble
+        Scramble,
     }
 }

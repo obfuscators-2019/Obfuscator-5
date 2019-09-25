@@ -126,7 +126,7 @@ namespace Obfuscator.Domain
             StatusChanged?.Invoke(new StatusInformation { Message = $"DONE" }, null);
         }
 
-        public void RunOperation(ObfuscationInfo obfuscationOperation, StatusInformation status = null)
+        private void RunOperation(ObfuscationInfo obfuscationOperation, StatusInformation status = null)
         {
             IEnumerable<string> originData = null;
 
