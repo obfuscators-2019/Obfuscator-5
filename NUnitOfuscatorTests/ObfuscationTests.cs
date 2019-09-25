@@ -105,12 +105,7 @@ namespace Tests
 
             var currentValues = _dataSet.Tables[0].Rows.Cast<DataRow>().Select(dr => dr[0].ToString()).ToList();
 
-            Assert.IsTrue(originalValues
-                .All(ov => currentValues
-                .Any(cv =>
-                cv == ov 
-                && 
-                originalValues.IndexOf(ov) != currentValues.IndexOf(cv))));
+            Assert.IsTrue(originalValues.All(ov => (originalValues.IndexOf(ov) != currentValues.IndexOf(ov)) && currentValues.IndexOf(ov) > 0));            
         }
 
 

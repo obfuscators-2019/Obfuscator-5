@@ -188,6 +188,7 @@ namespace Obfuscator
             var ofuscation = new Obfuscation
             {
                 StatusChanged = StatusInformationChanged,
+                DataPersistence = new SqlDataPersistence(),
             };
 
             var obfuscationOps = GetObfuscationOps();

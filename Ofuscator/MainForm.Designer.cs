@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             this.btnClose = new System.Windows.Forms.Button();
             this.columnSelector = new System.Windows.Forms.Panel();
             this.chkHasHeaders = new System.Windows.Forms.CheckBox();
@@ -79,7 +79,7 @@
             this.btnClose.Location = new System.Drawing.Point(869, 562);
             this.btnClose.Name = "btnClose";
             this.btnClose.Size = new System.Drawing.Size(73, 23);
-            this.btnClose.TabIndex = 14;
+            this.btnClose.TabIndex = 17;
             this.btnClose.Text = "CLOSE";
             this.btnClose.UseVisualStyleBackColor = true;
             this.btnClose.Click += new System.EventHandler(this.BtnClose_Click);
@@ -245,7 +245,7 @@
             this.lbObfuscationOps.Location = new System.Drawing.Point(12, 297);
             this.lbObfuscationOps.Name = "lbObfuscationOps";
             this.lbObfuscationOps.Size = new System.Drawing.Size(930, 259);
-            this.lbObfuscationOps.TabIndex = 9;
+            this.lbObfuscationOps.TabIndex = 12;
             this.lbObfuscationOps.Click += new System.EventHandler(this.LbObfuscationOps_Click);
             this.lbObfuscationOps.KeyDown += new System.Windows.Forms.KeyEventHandler(this.LbObfuscationOps_KeyDown);
             // 
@@ -256,7 +256,7 @@
             this.btnClearOps.Location = new System.Drawing.Point(88, 562);
             this.btnClearOps.Name = "btnClearOps";
             this.btnClearOps.Size = new System.Drawing.Size(47, 23);
-            this.btnClearOps.TabIndex = 11;
+            this.btnClearOps.TabIndex = 14;
             this.btnClearOps.Text = "Clear";
             this.btnClearOps.UseVisualStyleBackColor = true;
             this.btnClearOps.Click += new System.EventHandler(this.BtnClearOps_Click);
@@ -268,7 +268,7 @@
             this.btnLoadOps.Location = new System.Drawing.Point(141, 562);
             this.btnLoadOps.Name = "btnLoadOps";
             this.btnLoadOps.Size = new System.Drawing.Size(47, 23);
-            this.btnLoadOps.TabIndex = 12;
+            this.btnLoadOps.TabIndex = 15;
             this.btnLoadOps.Text = "Load";
             this.btnLoadOps.UseVisualStyleBackColor = true;
             this.btnLoadOps.Click += new System.EventHandler(this.BtnLoadOps_Click);
@@ -280,7 +280,7 @@
             this.btnSaveOps.Location = new System.Drawing.Point(194, 562);
             this.btnSaveOps.Name = "btnSaveOps";
             this.btnSaveOps.Size = new System.Drawing.Size(47, 23);
-            this.btnSaveOps.TabIndex = 13;
+            this.btnSaveOps.TabIndex = 16;
             this.btnSaveOps.Text = "Save";
             this.btnSaveOps.UseVisualStyleBackColor = true;
             this.btnSaveOps.Click += new System.EventHandler(this.BtnSaveOps_Click);
@@ -294,7 +294,7 @@
             this.btnRunObfuscationOps.Location = new System.Drawing.Point(12, 562);
             this.btnRunObfuscationOps.Name = "btnRunObfuscationOps";
             this.btnRunObfuscationOps.Size = new System.Drawing.Size(47, 23);
-            this.btnRunObfuscationOps.TabIndex = 10;
+            this.btnRunObfuscationOps.TabIndex = 13;
             this.btnRunObfuscationOps.Text = "RUN";
             this.btnRunObfuscationOps.UseVisualStyleBackColor = false;
             this.btnRunObfuscationOps.Click += new System.EventHandler(this.BtnRunObfuscationOps_Click);
@@ -373,7 +373,7 @@
             this.btnAddFieldToScramble.Location = new System.Drawing.Point(837, 282);
             this.btnAddFieldToScramble.Name = "btnAddFieldToScramble";
             this.btnAddFieldToScramble.Size = new System.Drawing.Size(24, 21);
-            this.btnAddFieldToScramble.TabIndex = 0;
+            this.btnAddFieldToScramble.TabIndex = 9;
             this.btnAddFieldToScramble.Text = "+";
             this.toolTip1.SetToolTip(this.btnAddFieldToScramble, "Scramble values on this column");
             this.btnAddFieldToScramble.UseVisualStyleBackColor = true;
@@ -387,7 +387,7 @@
             this.btnRemoveFieldFromScramble.Location = new System.Drawing.Point(861, 282);
             this.btnRemoveFieldFromScramble.Name = "btnRemoveFieldFromScramble";
             this.btnRemoveFieldFromScramble.Size = new System.Drawing.Size(24, 21);
-            this.btnRemoveFieldFromScramble.TabIndex = 23;
+            this.btnRemoveFieldFromScramble.TabIndex = 10;
             this.btnRemoveFieldFromScramble.Text = "-";
             this.toolTip1.SetToolTip(this.btnRemoveFieldFromScramble, "Don0t scramble values of this column");
             this.btnRemoveFieldFromScramble.UseVisualStyleBackColor = true;
@@ -401,7 +401,7 @@
             this.btnAddGroupFieldToScramble.Location = new System.Drawing.Point(885, 282);
             this.btnAddGroupFieldToScramble.Name = "btnAddGroupFieldToScramble";
             this.btnAddGroupFieldToScramble.Size = new System.Drawing.Size(24, 21);
-            this.btnAddGroupFieldToScramble.TabIndex = 24;
+            this.btnAddGroupFieldToScramble.TabIndex = 11;
             this.btnAddGroupFieldToScramble.Text = "( )";
             this.toolTip1.SetToolTip(this.btnAddGroupFieldToScramble, "GROUP BY this column to scramble group values");
             this.btnAddGroupFieldToScramble.UseVisualStyleBackColor = true;
@@ -441,8 +441,8 @@
             // 
             this.columnIndexDataGridViewTextBoxColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.ColumnHeader;
             this.columnIndexDataGridViewTextBoxColumn.DataPropertyName = "ColumnIndex";
-            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            this.columnIndexDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle2;
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            this.columnIndexDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle1;
             this.columnIndexDataGridViewTextBoxColumn.HeaderText = "Column";
             this.columnIndexDataGridViewTextBoxColumn.Name = "columnIndexDataGridViewTextBoxColumn";
             this.columnIndexDataGridViewTextBoxColumn.ReadOnly = true;
