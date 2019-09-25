@@ -132,6 +132,7 @@ namespace Obfuscator.Domain
 
             DataPersistence.ConnectionString = obfuscationOperation.Destination.ConnectionString;
             var dataSet = DataPersistence.GetTableData(obfuscationOperation);
+            DataTable scrambledDataTable = null;
 
             switch (obfuscationOperation.Origin.DataSourceType)
             {
@@ -148,8 +149,7 @@ namespace Obfuscator.Domain
                     originData = DniNie.GenerateNIF(dataSet.Tables[0].Rows.Count);
                     break;
                 case DataSourceType.Scramble:
-                    var dataTableScrambled = ScrambleDataSet(obfuscationOperation.Destination, dataSet);
-                    return;
+                    scrambledDataTable = ScrambleDataSet(obfuscationOperation.Destination, dataSet);
                     break;
                 default:
                     originData = new List<string>();
@@ -158,10 +158,33 @@ namespace Obfuscator.Domain
 
             if (status == null) status = new StatusInformation();
 
-            dataSet = OfuscateDataset(obfuscationOperation, originData, dataSet);
+            if (obfuscationOperation.Origin.DataSourceType == DataSourceType.Scramble)
+            {
+                UpdateDataSet(dataSet, scrambledDataTable);
+                return;
+            }
+            else
+                dataSet = OfuscateDataset(obfuscationOperation, originData, dataSet);
+
             status.Message = $"...Saving obfuscation on {obfuscationOperation.Destination.Name}";
             StatusChanged?.Invoke(status, null);
             DataPersistence.PersistOfuscation(obfuscationOperation, dataSet);
+        }
+
+        private void UpdateDataSet(DataSet dataSet, DataTable scrambledDataTable)
+        {
+            var totalRows = dataSet.Tables[scrambledDataTable.TableName].Rows.Count;
+            var columnsToUpdate = scrambledDataTable.Columns.Count;
+            var tableToUpdate = dataSet.Tables[0];
+
+            for (int i = 0; i < totalRows; i++)
+            {
+                var rowToUpdate = tableToUpdate.Rows[i];
+                var scrambledRow = scrambledDataTable.Rows[i];
+
+                for (int j = 0; j < columnsToUpdate; j++)
+                    rowToUpdate[j] = scrambledRow[j];
+            }                    
         }
 
         private DataSet OfuscateDataset(ObfuscationInfo obfuscationOperation, IEnumerable<string> data, DataSet dataSet)
@@ -214,18 +237,40 @@ namespace Obfuscator.Domain
 
         private void ScrambleColumnValues(List<DbColumnInfo> columnsToScramble, DataTable dataTableToScramble, DataTable scrambledResult)
         {
-            var scrambledRows = GetColumns(dataTableToScramble, columnsToScramble)
-                .AsEnumerable()
-                .OrderBy(dr => Guid.NewGuid())
-                .ToList();
+            var originalRows = GetColumns(dataTableToScramble, columnsToScramble).AsEnumerable().ToList();
+            List<DataRow> scrambledRows = null;
+
+            scrambledRows = GetBestPossibleScramble(originalRows, scrambledRows);
 
             for (int i = 0; i < dataTableToScramble.Rows.Count; i++)
             {
-                foreach (var column in columnsToScramble)
-                    dataTableToScramble.Rows[i][column.Name] = scrambledRows[i][column.Name];
-
-                scrambledResult.Rows.Add(dataTableToScramble.Rows[i].ItemArray);
+                var newRow = scrambledResult.NewRow();
+                foreach (var column in columnsToScramble) newRow[column.Name] = scrambledRows[i][column.Name];
+                scrambledResult.Rows.Add(newRow);
             }
+        }
+
+        private static List<DataRow> GetBestPossibleScramble(List<DataRow> originalRows, List<DataRow> scrambledRows)
+        {
+            var maxIterations = 5;
+            var possibleResults = new Dictionary<int, List<DataRow>>();
+
+            for (int iteration = 0; iteration < maxIterations; iteration++)
+            {
+                scrambledRows = originalRows.OrderBy(dr => Guid.NewGuid()).ToList();
+                var numberOfNotSuffledValues = originalRows.Count(ov => (originalRows.IndexOf(ov) == scrambledRows.IndexOf(ov)));
+                if (numberOfNotSuffledValues > 0)
+                {
+                    if (!possibleResults.Keys.Contains(numberOfNotSuffledValues))
+                        possibleResults.Add(numberOfNotSuffledValues, scrambledRows);
+
+                    scrambledRows = possibleResults[possibleResults.Min(dict => dict.Key)];
+                }
+                else
+                    break;
+            }
+
+            return scrambledRows;
         }
 
         private DataTable GetColumns(DataTable dataTable, IEnumerable<DbColumnInfo> groupColumns)
@@ -271,5 +316,4 @@ namespace Obfuscator.Domain
             return columnContent;
         }
     }
-
 }

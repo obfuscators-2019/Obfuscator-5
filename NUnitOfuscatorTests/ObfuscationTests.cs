@@ -105,9 +105,9 @@ namespace Tests
 
             var currentValues = _dataSet.Tables[0].Rows.Cast<DataRow>().Select(dr => dr[0].ToString()).ToList();
 
-            Assert.IsTrue(originalValues.All(ov => (originalValues.IndexOf(ov) != currentValues.IndexOf(ov)) && currentValues.IndexOf(ov) > 0));            
+            var notSuffledValues = originalValues.Count(ov => (originalValues.IndexOf(ov) == currentValues.IndexOf(ov)));
+
+            Assert.Zero(notSuffledValues);
         }
-
-
     }
 }
