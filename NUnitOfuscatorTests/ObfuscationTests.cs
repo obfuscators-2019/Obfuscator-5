@@ -84,17 +84,31 @@ namespace Tests
         }
 
         [Test]
-        public void UsingScramblingGeneratorObfuscation_ShufflesExistingValues()
+        public void UsingScramblingGeneratorObfuscation_ShufflesExistingValuesWithinGroups()
         {
-            var fakeDataPersistence = A.Fake<IDataPersistence>();
-            var originalValues = new List<string> { "uno", "dos", "tres" };
-
-            foreach (var value in originalValues)
+            _obfuscationOperation.Destination.Columns.Add(new DbColumnInfo
             {
-                var row = _dataSet.Tables[0].NewRow();
-                row[0] = value;
-                _dataSet.Tables[0].Rows.Add(row);
-            }
+                Index = 1,
+                Name = "TestGrouping",
+                DataType = "int",
+                IsGroupColumn = true,
+                IsNullable = false,
+                CharacterMaxLength = 50,
+            });
+
+            var fakeDataPersistence = A.Fake<IDataPersistence>();
+            var valuesOnGroup = new List<string> { "uno", "dos", "tres" };
+
+            for (int groupIndex = 0; groupIndex < 3; groupIndex++)
+                foreach (var originalValue in valuesOnGroup)
+                {
+                    var row = _dataSet.Tables[0].NewRow();
+                    row[0] = $"{groupIndex}-{originalValue}";
+                    row[1] = groupIndex;
+                    _dataSet.Tables[0].Rows.Add(row);
+                }
+
+            var originalRows = _dataSet.Tables[0].Rows.Cast<DataRow>().ToList(); 
 
             A.CallTo(() => fakeDataPersistence.GetTableData(_obfuscationOperation)).Returns(_dataSet);
 
@@ -103,11 +117,13 @@ namespace Tests
             var obfuscation = new Obfuscation { DataPersistence = fakeDataPersistence };
             obfuscation.RunOperations(new List<ObfuscationInfo> { _obfuscationOperation });
 
-            var currentValues = _dataSet.Tables[0].Rows.Cast<DataRow>().Select(dr => dr[0].ToString()).ToList();
+            var currentValues = _dataSet.Tables[0].Rows.Cast<DataRow>().ToList();
 
-            var notSuffledValues = originalValues.Count(ov => (originalValues.IndexOf(ov) == currentValues.IndexOf(ov)));
+            // for each original row - get rows on the same group
+            // they should be scrambled, but all in in the same group
 
-            Assert.Zero(notSuffledValues);
+
+            Assert.Zero(1);
         }
     }
 }
