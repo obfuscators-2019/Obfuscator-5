@@ -9,6 +9,29 @@ using System.Linq;
 
 namespace Tests
 {
+    public class ObjectArraySearch
+    {
+        object[] _matrix1 = null;
+
+        public ObjectArraySearch(object[] matrix1)
+        {
+            _matrix1 = matrix1;
+        }
+        public bool ContentEquals(object[] matrix2)
+        {
+            if (_matrix1.Length != matrix2.Length) return false;
+
+            if ((!(_matrix1 is null) && matrix2 is null) || (_matrix1 is null && !(matrix2 is null)))
+                return false;
+            else if (_matrix1 is null && matrix2 is null) return true;
+
+            for (int i = 0; i < matrix2.Length; i++)
+                if (!_matrix1[i].Equals(matrix2[i])) return false;
+
+            return true;
+        }
+    }
+
     public class ObfuscationTests
     {
         private ObfuscationInfo _obfuscationOperation;
@@ -127,11 +150,23 @@ namespace Tests
 
             foreach (var groupIndex in distinctGroups)
             {
-                var expectedValuesInGroup = originalRows.Where(dr => (int)dr[testGroupingColumn.Index] == groupIndex).ToList();
+                var originalValuesInGroup = originalRows.Where(dr => (int)dr[testGroupingColumn.Index] == groupIndex).ToList();
                 var currentValuesInGroup = currentValues.Where(dr => ((string)dr[0]).StartsWith($"{groupIndex}-")).Select(x => x.ItemArray).ToList();
 
-                Assert.AreEqual(expectedValuesInGroup.Count(), currentValuesInGroup.Count());
-                Assert.IsTrue(expectedValuesInGroup.All(ev => currentValuesInGroup.IndexOf(ev) >= 0 && (expectedValuesInGroup.IndexOf(ev) != currentValuesInGroup.IndexOf(ev))));
+                var allOk = true;
+                foreach (var originalValue in originalValuesInGroup)
+                {
+                    var searchOriginal = new ObjectArraySearch(originalValue);
+                    var indexOnCurrentValues = currentValuesInGroup.FindIndex(searchOriginal.ContentEquals);
+
+                    allOk =  indexOnCurrentValues >= 0;
+                    allOk &= originalValuesInGroup.IndexOf(originalValue) != indexOnCurrentValues;
+
+                    if (!allOk) break;
+                }
+
+                Assert.AreEqual(originalValuesInGroup.Count(), currentValuesInGroup.Count());
+                Assert.IsTrue(allOk, $"Original sequence: {string.Join(",", originalValuesInGroup.Select(ov => ov[0]))}  Scrambled sequence: {string.Join(",", currentValuesInGroup.Select(cv => cv[0]))}");
             }
         }
 

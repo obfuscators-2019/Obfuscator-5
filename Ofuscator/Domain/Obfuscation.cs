@@ -255,7 +255,7 @@ namespace Obfuscator.Domain
 
         private static List<DataRow> GetBestPossibleScramble(List<DataRow> originalRows)
         {
-            var maxIterations = 5;
+            var maxIterations = 10;
             var possibleResults = new Dictionary<int, List<DataRow>>();
             List<DataRow> scrambledRows = originalRows;
 
