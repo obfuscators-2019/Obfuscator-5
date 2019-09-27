@@ -112,7 +112,7 @@ namespace Tests
         public void UsingScramblingGeneratorObfuscation_ShufflesExistingValuesWithinGroups()
         {
             var testGroupingColumn = AddColumn_TestGrouping_ToObfuscationOperation_AndDataSet();
-            List<DataRow> originalRows = AddValues_AndGroup_ToDataSet();
+            var originalRows = AddValues_AndGroup_ToDataSet();
 
             var fakeDataPersistence = A.Fake<IDataPersistence>();
             A.CallTo(() => fakeDataPersistence.GetTableData(_obfuscationOperation)).Returns(_dataSet);
@@ -127,31 +127,28 @@ namespace Tests
 
             foreach (var groupIndex in distinctGroups)
             {
-                var expectedValuesInGroup = originalRows.Where(dr => (int)dr[1] == groupIndex).ToList();
-                var valuesInGroup = originalRows.Where(dr => ((string)dr[0]).StartsWith($"{groupIndex}-")).ToList();
+                var expectedValuesInGroup = originalRows.Where(dr => (int)dr[testGroupingColumn.Index] == groupIndex).ToList();
+                var currentValuesInGroup = currentValues.Where(dr => ((string)dr[0]).StartsWith($"{groupIndex}-")).Select(x => x.ItemArray).ToList();
 
-                Assert.AreEqual(expectedValuesInGroup.Count(), valuesInGroup.Count());
-
-                foreach (var dataRowsInGroup in expectedValuesInGroup)
-                    Assert.IsTrue(expectedValuesInGroup.All(ov => valuesInGroup.IndexOf(ov) >= 0 && (expectedValuesInGroup.IndexOf(ov) != valuesInGroup.IndexOf(ov))));
+                Assert.AreEqual(expectedValuesInGroup.Count(), currentValuesInGroup.Count());
+                Assert.IsTrue(expectedValuesInGroup.All(ev => currentValuesInGroup.IndexOf(ev) >= 0 && (expectedValuesInGroup.IndexOf(ev) != currentValuesInGroup.IndexOf(ev))));
             }
         }
 
-        private List<DataRow> AddValues_AndGroup_ToDataSet()
+        private List<object[]> AddValues_AndGroup_ToDataSet()
         {
             var valuesOnGroup = new List<string> { "uno", "dos", "tres" };
+            var rowsAdded = new List<object[]>();
 
             for (int groupIndex = 0; groupIndex < 3; groupIndex++)
                 foreach (var originalValue in valuesOnGroup)
                 {
-                    var row = _dataSet.Tables[0].NewRow();
-                    row[0] = $"{groupIndex}-{originalValue}";
-                    row[1] = groupIndex;
+                    var row = new object[] { $"{groupIndex}-{originalValue}", groupIndex };
                     _dataSet.Tables[0].Rows.Add(row);
+                    rowsAdded.Add(row);
                 }
 
-            var originalRows = _dataSet.Tables[0].Rows.Cast<DataRow>().ToList();
-            return originalRows;
+            return rowsAdded;
         }
 
         private DbColumnInfo AddColumn_TestGrouping_ToObfuscationOperation_AndDataSet()

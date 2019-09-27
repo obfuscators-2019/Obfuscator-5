@@ -215,15 +215,15 @@ namespace Obfuscator.Domain
             if (destination.Columns.Any(c => c.IsGroupColumn))
             {
                 var groupColumns = destination.Columns.Where(c => c.IsGroupColumn).ToList();
-                var distinctValueGroups = GetColumns(dataSet.Tables[0], groupColumns)
+                var distinctGroups = GetColumns(dataSet.Tables[0], groupColumns)
                     .AsEnumerable()
                     .Distinct(new DataRowComparer());
 
-                foreach (var valueGroup in distinctValueGroups)
+                foreach (var group in distinctGroups)
                 {
                     var filter = string.Empty;
                     for (int i = 0; i < groupColumns.Count(); i++)
-                        filter += $"AND {groupColumns[i].Name}={valueGroup[i].ToString()} ";
+                        filter += $"AND {groupColumns[i].Name}={group[i].ToString()} ";
 
                     var filteredDataTable = dataSet.Tables[0].Select(filter.Substring(3)).CopyToDataTable();
                     ScrambleColumnValues(scrambleColumns, filteredDataTable, scrambledResult);
@@ -237,23 +237,27 @@ namespace Obfuscator.Domain
 
         private void ScrambleColumnValues(List<DbColumnInfo> columnsToScramble, DataTable dataTableToScramble, DataTable scrambledResult)
         {
-            var originalRows = GetColumns(dataTableToScramble, columnsToScramble).AsEnumerable().ToList();
-            List<DataRow> scrambledRows = null;
-
-            scrambledRows = GetBestPossibleScramble(originalRows, scrambledRows);
+            List<DataRow> originalRows = GetColumns(dataTableToScramble, columnsToScramble).AsEnumerable().ToList();
+            List<DataRow> scrambledRows = GetBestPossibleScramble(originalRows);
+            
+            IEnumerable<DataColumn> columnsWithSameValue = dataTableToScramble.Columns
+                .Cast<DataColumn>()
+                .Where(c => !columnsToScramble.Any(cs => cs.Name == c.ColumnName));
 
             for (int i = 0; i < dataTableToScramble.Rows.Count; i++)
             {
                 var newRow = scrambledResult.NewRow();
+                foreach (var column in columnsWithSameValue) newRow[column.ColumnName] = dataTableToScramble.Rows[i][column.ColumnName];
                 foreach (var column in columnsToScramble) newRow[column.Name] = scrambledRows[i][column.Name];
                 scrambledResult.Rows.Add(newRow);
             }
         }
 
-        private static List<DataRow> GetBestPossibleScramble(List<DataRow> originalRows, List<DataRow> scrambledRows)
+        private static List<DataRow> GetBestPossibleScramble(List<DataRow> originalRows)
         {
             var maxIterations = 5;
             var possibleResults = new Dictionary<int, List<DataRow>>();
+            List<DataRow> scrambledRows = originalRows;
 
             for (int iteration = 0; iteration < maxIterations; iteration++)
             {
