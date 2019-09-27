@@ -3,6 +3,7 @@ using NUnit.Framework;
 using Obfuscator.Domain;
 using Obfuscator.Entities;
 using Obfuscator.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -132,9 +133,10 @@ namespace Tests
         }
 
         [Test]
-        public void UsingScramblingGeneratorObfuscation_ShufflesExistingValuesWithinGroups()
+        public void UsingScramblingGeneratorObfuscation_ShufflesExistingValuesWithinGroup()
         {
-            var testGroupingColumn = AddColumn_TestGrouping_ToObfuscationOperation_AndDataSet();
+            // ARRANGE
+            var testGroupingColumn = AddGroupColumn_ToObfuscationOperation_AndDataSet("TestingGroup");
             var originalRows = AddValues_AndGroup_ToDataSet();
 
             var fakeDataPersistence = A.Fake<IDataPersistence>();
@@ -142,16 +144,18 @@ namespace Tests
 
             _obfuscationOperation.Origin.DataSourceType = DataSourceType.Scramble;
 
+            // ACT
             var obfuscation = new Obfuscation { DataPersistence = fakeDataPersistence };
             obfuscation.RunOperations(new List<ObfuscationInfo> { _obfuscationOperation });
 
+            // ASSERT
             var currentValues = _dataSet.Tables[0].Rows.Cast<DataRow>().ToList();
             var distinctGroups = originalRows.Select(dr => (int)dr[testGroupingColumn.Index]).Distinct();
 
             foreach (var groupIndex in distinctGroups)
             {
                 var originalValuesInGroup = originalRows.Where(dr => (int)dr[testGroupingColumn.Index] == groupIndex).ToList();
-                var currentValuesInGroup = currentValues.Where(dr => ((string)dr[0]).StartsWith($"{groupIndex}-")).Select(x => x.ItemArray).ToList();
+                var currentValuesInGroup = currentValues.Where(dr => ((string)dr[0]).EndsWith($"-{groupIndex}")).Select(x => x.ItemArray).ToList();
 
                 var allOk = true;
                 foreach (var originalValue in originalValuesInGroup)
@@ -160,6 +164,48 @@ namespace Tests
                     var indexOnCurrentValues = currentValuesInGroup.FindIndex(searchOriginal.ContentEquals);
 
                     allOk =  indexOnCurrentValues >= 0;
+                    if (originalValuesInGroup.Count > 1) allOk &= originalValuesInGroup.IndexOf(originalValue) != indexOnCurrentValues;
+
+                    if (!allOk) break;
+                }
+
+                Assert.AreEqual(originalValuesInGroup.Count(), currentValuesInGroup.Count());
+                Assert.IsTrue(allOk, $"Original sequence: {string.Join(",", originalValuesInGroup.Select(ov => ov[0]))}  Scrambled sequence: {string.Join(",", currentValuesInGroup.Select(cv => cv[0]))}");
+            }
+        }
+        [Test]
+        public void UsingScramblingGeneratorObfuscation_ShufflesExistingValuesWithinGroups()
+        {
+            // ARRANGE
+            var testGroupingColumn1 = AddGroupColumn_ToObfuscationOperation_AndDataSet("TestingGroup1");
+            var testGroupingColumn2 = AddGroupColumn_ToObfuscationOperation_AndDataSet("TestingGroup2");
+            var originalRows = AddValues_AndGroup_ToDataSet();
+
+            var fakeDataPersistence = A.Fake<IDataPersistence>();
+            A.CallTo(() => fakeDataPersistence.GetTableData(_obfuscationOperation)).Returns(_dataSet);
+
+            _obfuscationOperation.Origin.DataSourceType = DataSourceType.Scramble;
+
+            // ACT
+            var obfuscation = new Obfuscation { DataPersistence = fakeDataPersistence };
+            obfuscation.RunOperations(new List<ObfuscationInfo> { _obfuscationOperation });
+
+            // ASSERT
+            var currentValues = _dataSet.Tables[0].Rows.Cast<DataRow>().ToList();
+            var distinctGroups = originalRows.Select(dr => new object[] { (int)dr[testGroupingColumn1.Index], (int)dr[testGroupingColumn2.Index] }).Distinct();
+
+            foreach (var groupIndex in distinctGroups)
+            {
+                var originalValuesInGroup = originalRows.Where(dr => (int)dr[testGroupingColumn1.Index] == (int)groupIndex[0] && (int)dr[testGroupingColumn2.Index] == (int)groupIndex[1]).ToList();
+                var currentValuesInGroup = currentValues.Where(dr => ((string)dr[0]).EndsWith($"-{(int)groupIndex[0]}-{(int)groupIndex[1]}")).Select(x => x.ItemArray).ToList();
+
+                var allOk = true;
+                foreach (var originalValue in originalValuesInGroup)
+                {
+                    var searchOriginal = new ObjectArraySearch(originalValue);
+                    var indexOnCurrentValues = currentValuesInGroup.FindIndex(searchOriginal.ContentEquals);
+
+                    allOk = indexOnCurrentValues >= 0;
                     allOk &= originalValuesInGroup.IndexOf(originalValue) != indexOnCurrentValues;
 
                     if (!allOk) break;
@@ -174,26 +220,33 @@ namespace Tests
         {
             var valuesOnGroup = new List<string> { "uno", "dos", "tres" };
             var rowsAdded = new List<object[]>();
+            var groupColumns = _obfuscationOperation.Destination.Columns.Where(c => c.IsGroupColumn);
 
-            for (int groupIndex = 0; groupIndex < 3; groupIndex++)
+            for (int groupIndex = 0; groupIndex < groupColumns.Count() + 1 ; groupIndex++)
                 foreach (var originalValue in valuesOnGroup)
                 {
-                    var row = new object[] { $"{groupIndex}-{originalValue}", groupIndex };
-                    _dataSet.Tables[0].Rows.Add(row);
-                    rowsAdded.Add(row);
+                    var row = new List<object> { $"{originalValue}" };
+                    foreach (var groupColumn in groupColumns)
+                    {
+                        var groupId = new Random().Next(2);
+                        row.Add(groupId);
+                        row[0] = $"{row[0]}-{groupId}";
+                    }
+                    _dataSet.Tables[0].Rows.Add(row.ToArray());
+                    rowsAdded.Add(row.ToArray());
                 }
 
             return rowsAdded;
         }
 
-        private DbColumnInfo AddColumn_TestGrouping_ToObfuscationOperation_AndDataSet()
+        private DbColumnInfo AddGroupColumn_ToObfuscationOperation_AndDataSet(string columnName)
         {
             var columnIndex = _obfuscationOperation.Destination.Columns.Last().Index + 1;
 
             _obfuscationOperation.Destination.Columns.Add(new DbColumnInfo
             {
                 Index = columnIndex,
-                Name = "TestGrouping",
+                Name = columnName,
                 DataType = "int",
                 IsGroupColumn = true,
                 IsNullable = false,
@@ -203,7 +256,7 @@ namespace Tests
             _dataSet.Tables[0].Columns.Add(
                 new DataColumn
                 {
-                    ColumnName = "TestGrouping",
+                    ColumnName = columnName,
                     DataType = typeof(int),
                     AllowDBNull = false,
                 });
