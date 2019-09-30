@@ -159,45 +159,44 @@ namespace Obfuscator.Domain
             if (status == null) status = new StatusInformation();
 
             if (obfuscationOperation.Origin.DataSourceType == DataSourceType.Scramble)
-            {
-                UpdateDataSet(dataSet, scrambledDataTable);
-                return;
-            }
+                UpdateDataSet(dataSet, scrambledDataTable, obfuscationOperation);
             else
-                dataSet = OfuscateDataset(obfuscationOperation, originData, dataSet);
+                UpdateDataset(dataSet, originData, obfuscationOperation.Destination.Columns[0].Name);
 
             status.Message = $"...Saving obfuscation on {obfuscationOperation.Destination.Name}";
             StatusChanged?.Invoke(status, null);
             DataPersistence.PersistOfuscation(obfuscationOperation, dataSet);
         }
 
-        private void UpdateDataSet(DataSet dataSet, DataTable scrambledDataTable)
+        private DataSet UpdateDataSet(DataSet dataSet, DataTable scrambledDataTable, ObfuscationInfo obfuscationOperation)
         {
-            var totalRows = dataSet.Tables[scrambledDataTable.TableName].Rows.Count;
-            var columnsToUpdate = scrambledDataTable.Columns.Count;
-            var tableToUpdate = dataSet.Tables[0];
+            var tableToUpdate = dataSet.Tables[scrambledDataTable.TableName];
+            var totalRows = tableToUpdate.Rows.Count;
+            var columnsToUpdate = obfuscationOperation.Destination.Columns.Where(c => !c.IsGroupColumn);
 
             for (int i = 0; i < totalRows; i++)
             {
                 var rowToUpdate = tableToUpdate.Rows[i];
                 var scrambledRow = scrambledDataTable.Rows[i];
 
-                for (int j = 0; j < columnsToUpdate; j++)
-                    rowToUpdate[j] = scrambledRow[j];
-            }                    
+                foreach (var column in columnsToUpdate)
+                    rowToUpdate[column.Index] = scrambledRow[column.Index];
+            }
+
+            return dataSet;
         }
 
-        private DataSet OfuscateDataset(ObfuscationInfo obfuscationOperation, IEnumerable<string> data, DataSet dataSet)
+        private DataSet UpdateDataset(DataSet dataSet, IEnumerable<string> data, string columnName)
         {            
             var dataListIndex = 0;
             var dataListMaxIndex = data.Count() - 1;
             foreach (var row in dataSet.Tables[0].Rows)
             {
                 var dataRow = (DataRow)row;
-                if (dataRow[obfuscationOperation.Destination.Columns[0].Name] is DateTime)
-                    dataRow[obfuscationOperation.Destination.Columns[0].Name] = ParseDateTime(data.ElementAt(dataListIndex));
+                if (dataRow[columnName] is DateTime)
+                    dataRow[columnName] = ParseDateTime(data.ElementAt(dataListIndex));
                 else
-                    dataRow[obfuscationOperation.Destination.Columns[0].Name] = data.ElementAt(dataListIndex);
+                    dataRow[columnName] = data.ElementAt(dataListIndex);
 
                 dataListIndex++;
                 if (dataListIndex > dataListMaxIndex) dataListIndex = 0;
