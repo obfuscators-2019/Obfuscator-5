@@ -199,24 +199,23 @@ namespace Tests
         {
             var valuesOnGroup = new List<string> { "uno", "dos", "tres" };
             var rowsAdded = new List<object[]>();
-            var groupColumns = _obfuscationOperation.Destination.Columns.Where(c => c.IsGroupColumn);
-            var totalGroups = groupColumns.Count();
+            var totalGroups = _obfuscationOperation.Destination.Columns.Where(c => c.IsGroupColumn).Count();
             var totalElementsToAdd = 9;
 
             for (int i = 0; i <= totalElementsToAdd ; i++)
             {
-                var originalValue = valuesOnGroup[new Random().Next(valuesOnGroup.Count())];
-                var row = new List<object> { $"{originalValue}-{DateTime.Now.Ticks}" };
                 var randomGroups = new List<object>();
-
                 for (int j = 0; j < totalGroups; j++)
                 {
                     randomGroups.Add((object)new Random().Next(totalGroups));
                     System.Threading.Thread.Sleep(3); // delay needed in order to get different groups
                 }
 
+                var originalValue = valuesOnGroup[new Random().Next(valuesOnGroup.Count())];
+                var row = new List<object> { 
+                    $"{originalValue}-{DateTime.Now.Ticks}-{string.Join("-", randomGroups)}"
+                };
                 row.AddRange(randomGroups);
-                row[0] += "-" + string.Join("-", randomGroups);
 
                 _dataSet.Tables[0].Rows.Add(row.ToArray());
                 rowsAdded.Add(row.ToArray());

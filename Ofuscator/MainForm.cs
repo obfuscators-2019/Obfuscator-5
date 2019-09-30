@@ -72,43 +72,36 @@ namespace Obfuscator
         {
             var clicked = (Label)sender;
             var firstEnterCharIndex = clicked.Text.IndexOf('\n');
+
             if (firstEnterCharIndex < 0)
+            {
                 MessageBox.Show("Can't get this header.\nPlease check the content of this file.", "WARNING", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            var csvDataSource = (List<DataSourceInformation>)dataSourceInformationBindingSource.DataSource;
+            DataSourceInformation currentCsvInfo = GetCsvInstanceForCurrentColumns();
+            var csvInfoBounded = csvDataSource.FirstOrDefault(x => x == currentCsvInfo);
+
+            if (chkHasHeaders.Checked)
+            {
+                var firstBracketIndex = clicked.Text.IndexOf('[');
+                csvInfoBounded.ColumnIndex = int.Parse(clicked.Text.Substring(0, firstBracketIndex));
+                csvInfoBounded.ColumnName = $"{clicked.Text.Substring(firstBracketIndex + 1, firstEnterCharIndex - firstBracketIndex - 2)}";
+            }
             else
             {
-                var csvDataSource = (List<DataSourceInformation>)dataSourceInformationBindingSource.DataSource;
-                DataSourceInformation currentCsvInfo = GetCsvInstanceForCurrentColumns();
-                var csvInfoBounded = csvDataSource.FirstOrDefault(x => x == currentCsvInfo);
-                if (chkHasHeaders.Checked)
-                {
-                    var firstBracketIndex = clicked.Text.IndexOf('[');
-                    csvInfoBounded.ColumnIndex = int.Parse(clicked.Text.Substring(0, firstBracketIndex));
-                    csvInfoBounded.ColumnName = $"{clicked.Text.Substring(firstBracketIndex + 1, firstEnterCharIndex - firstBracketIndex - 2)}";
-                }
-                else
-                {
-                    csvInfoBounded.ColumnIndex = int.Parse(clicked.Text.Substring(0, firstEnterCharIndex));
-                    csvInfoBounded.ColumnName = "";
-                }
-                gridCsvInformation.Refresh();
+                csvInfoBounded.ColumnIndex = int.Parse(clicked.Text.Substring(0, firstEnterCharIndex));
+                csvInfoBounded.ColumnName = "";
             }
+            gridCsvInformation.Refresh();
         }
 
         private void BtnConnect_Click(object sender, EventArgs e)
         {
             try
             {
-                var dataPersistence = new SqlDataPersistence {
-                    ConnectionString = txtSqlConnectionString.Text,
-                    StatusChanged = StatusInformationChanged,
-                };
-
-                var obfuscation = new Obfuscation {
-                    DataPersistence = dataPersistence,
-                    StatusChanged = StatusInformationChanged,
-                };
-
-                var tables = obfuscation.RetrieveDatabaseInfo();
+                List<DbTableInfo> tables = RetrieveInformationOfTablesFromDatabase();
 
                 InitializeComboDatabaseTableNames();
                 comboDbTableNames.DataSource = tables;
@@ -124,6 +117,24 @@ namespace Obfuscator
                 InitializeComboDatabaseTableNames();
                 InitializeComboDatabaseFields();
             }
+        }
+
+        private List<DbTableInfo> RetrieveInformationOfTablesFromDatabase()
+        {
+            var dataPersistence = new SqlDataPersistence
+            {
+                ConnectionString = txtSqlConnectionString.Text,
+                StatusChanged = StatusInformationChanged,
+            };
+
+            var obfuscation = new Obfuscation
+            {
+                DataPersistence = dataPersistence,
+                StatusChanged = StatusInformationChanged,
+            };
+
+            var tables = obfuscation.RetrieveDatabaseInfo();
+            return tables;
         }
 
         private void StatusInformationChanged(object callbackInfo, EventArgs e)
@@ -151,26 +162,36 @@ namespace Obfuscator
                     ops.RemoveAt(currentIndex);
                     break;
                 case Keys.Control | Keys.Up:
-                    if (currentIndex > 0)
-                    {
-                        var currentOp = ops[currentIndex];
-                        ops.Insert(currentIndex - 1, currentOp);
-                        ops.RemoveAt(currentIndex + 1);
-                        lbObfuscationOps.SelectedIndex = currentIndex;
-                    }
+                    MoveUpListBoxElement(currentIndex, ops);
                     break;
                 case Keys.Control | Keys.Down:
-                    if (currentIndex < ops.Count - 1)
-                    {
-                        var currentOp = ops[currentIndex];
-                        ops.Insert(currentIndex + 2, currentOp);
-                        ops.RemoveAt(currentIndex);
-                        lbObfuscationOps.SelectedIndex = currentIndex;
-                    }
+                    MoveDownListBoxElement(currentIndex, ops);
                     break;
                 default:
                     e.Handled = false;
                     break;
+            }
+        }
+
+        private void MoveDownListBoxElement(int currentIndex, BindingList<ObfuscationParser> ops)
+        {
+            if (currentIndex < ops.Count - 1)
+            {
+                var currentOp = ops[currentIndex];
+                ops.Insert(currentIndex + 2, currentOp);
+                ops.RemoveAt(currentIndex);
+                lbObfuscationOps.SelectedIndex = currentIndex;
+            }
+        }
+
+        private void MoveUpListBoxElement(int currentIndex, BindingList<ObfuscationParser> ops)
+        {
+            if (currentIndex > 0)
+            {
+                var currentOp = ops[currentIndex];
+                ops.Insert(currentIndex - 1, currentOp);
+                ops.RemoveAt(currentIndex + 1);
+                lbObfuscationOps.SelectedIndex = currentIndex;
             }
         }
 
