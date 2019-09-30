@@ -10,29 +10,6 @@ using System.Linq;
 
 namespace Tests
 {
-    public class ObjectArraySearch
-    {
-        object[] _matrix1 = null;
-
-        public ObjectArraySearch(object[] matrix1)
-        {
-            _matrix1 = matrix1;
-        }
-        public bool ContentEquals(object[] matrix2)
-        {
-            if (_matrix1.Length != matrix2.Length) return false;
-
-            if ((!(_matrix1 is null) && matrix2 is null) || (_matrix1 is null && !(matrix2 is null)))
-                return false;
-            else if (_matrix1 is null && matrix2 is null) return true;
-
-            for (int i = 0; i < matrix2.Length; i++)
-                if (!_matrix1[i].Equals(matrix2[i])) return false;
-
-            return true;
-        }
-    }
-
     public class ObfuscationTests
     {
         private ObfuscationInfo _obfuscationOperation;
@@ -173,6 +150,7 @@ namespace Tests
                 Assert.IsTrue(allOk, $"Original sequence: {string.Join(",", originalValuesInGroup.Select(ov => ov[0]))}  Scrambled sequence: {string.Join(",", currentValuesInGroup.Select(cv => cv[0]))}");
             }
         }
+
         [Test]
         public void UsingScramblingGeneratorObfuscation_ShufflesExistingValuesWithinGroups()
         {
@@ -200,16 +178,17 @@ namespace Tests
                 var currentValuesInGroup = currentValues.Where(dr => ((string)dr[0]).EndsWith($"-{(int)groupIndex[0]}-{(int)groupIndex[1]}")).Select(x => x.ItemArray).ToList();
 
                 var allOk = true;
-                foreach (var originalValue in originalValuesInGroup)
-                {
-                    var searchOriginal = new ObjectArraySearch(originalValue);
-                    var indexOnCurrentValues = currentValuesInGroup.FindIndex(searchOriginal.ContentEquals);
+                if (originalValuesInGroup.Count() > 1)
+                    foreach (var originalValue in originalValuesInGroup)
+                    {
+                        var searchOriginal = new ObjectArraySearch(originalValue);
+                        var indexOnCurrentValues = currentValuesInGroup.FindIndex(searchOriginal.ContentEquals);
 
-                    allOk = indexOnCurrentValues >= 0;
-                    allOk &= originalValuesInGroup.IndexOf(originalValue) != indexOnCurrentValues;
+                        allOk = indexOnCurrentValues >= 0;
+                        allOk &= originalValuesInGroup.IndexOf(originalValue) != indexOnCurrentValues;
 
-                    if (!allOk) break;
-                }
+                        if (!allOk) break;
+                    }
 
                 Assert.AreEqual(originalValuesInGroup.Count(), currentValuesInGroup.Count());
                 Assert.IsTrue(allOk, $"Original sequence: {string.Join(",", originalValuesInGroup.Select(ov => ov[0]))}  Scrambled sequence: {string.Join(",", currentValuesInGroup.Select(cv => cv[0]))}");
@@ -221,20 +200,27 @@ namespace Tests
             var valuesOnGroup = new List<string> { "uno", "dos", "tres" };
             var rowsAdded = new List<object[]>();
             var groupColumns = _obfuscationOperation.Destination.Columns.Where(c => c.IsGroupColumn);
+            var totalGroups = groupColumns.Count();
+            var totalElementsToAdd = 9;
 
-            for (int groupIndex = 0; groupIndex < groupColumns.Count() + 1 ; groupIndex++)
-                foreach (var originalValue in valuesOnGroup)
+            for (int i = 0; i <= totalElementsToAdd ; i++)
+            {
+                var originalValue = valuesOnGroup[new Random().Next(valuesOnGroup.Count())];
+                var row = new List<object> { $"{originalValue}-{DateTime.Now.Ticks}" };
+                var randomGroups = new List<object>();
+
+                for (int j = 0; j < totalGroups; j++)
                 {
-                    var row = new List<object> { $"{originalValue}" };
-                    foreach (var groupColumn in groupColumns)
-                    {
-                        var groupId = new Random().Next(2);
-                        row.Add(groupId);
-                        row[0] = $"{row[0]}-{groupId}";
-                    }
-                    _dataSet.Tables[0].Rows.Add(row.ToArray());
-                    rowsAdded.Add(row.ToArray());
+                    randomGroups.Add((object)new Random().Next(totalGroups));
+                    System.Threading.Thread.Sleep(3); // delay needed in order to get different groups
                 }
+
+                row.AddRange(randomGroups);
+                row[0] += "-" + string.Join("-", randomGroups);
+
+                _dataSet.Tables[0].Rows.Add(row.ToArray());
+                rowsAdded.Add(row.ToArray());
+            }
 
             return rowsAdded;
         }
@@ -265,3 +251,4 @@ namespace Tests
         }
     }
 }
+ 

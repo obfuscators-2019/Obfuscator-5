@@ -255,11 +255,11 @@ namespace Obfuscator.Domain
 
         private static List<DataRow> GetBestPossibleScramble(List<DataRow> originalRows)
         {
-            var maxIterations = 10;
+            var maxTries = 20;
             var possibleResults = new Dictionary<int, List<DataRow>>();
             List<DataRow> scrambledRows = originalRows;
 
-            for (int iteration = 0; iteration < maxIterations; iteration++)
+            for (int iteration = 0; iteration < maxTries; iteration++)
             {
                 scrambledRows = originalRows.OrderBy(dr => Guid.NewGuid()).ToList();
                 var numberOfNotSuffledValues = originalRows.Count(ov => (originalRows.IndexOf(ov) == scrambledRows.IndexOf(ov)));

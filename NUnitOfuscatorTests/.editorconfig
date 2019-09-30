@@ -1,0 +1,7 @@
+﻿[*.cs]
+
+# CA1707: Los identificadores no deben contener caracteres de subrayado
+dotnet_diagnostic.CA1707.severity = suggestion
+
+# CA1001: Los tipos que poseen campos descartables deben ser descartables
+dotnet_diagnostic.CA1001.severity = suggestion
