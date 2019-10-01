@@ -8,37 +8,7 @@ using System.Linq;
 
 namespace Obfuscator.Domain
 {
-    internal class DataRowComparer : IEqualityComparer<DataRow>
-    {
-        public bool Equals(DataRow x, DataRow y)
-        {
-            if (Object.ReferenceEquals(x, y)) return true;
-
-            if (Object.ReferenceEquals(x, null) || Object.ReferenceEquals(y, null)) return false;
-
-            if (x.ItemArray.Count() != y.ItemArray.Count()) return false;
-
-            for (int i = 0; i < x.ItemArray.Count(); i++)
-                if (!x.ItemArray[i].Equals(y.ItemArray[i])) return false;
-
-            return true;
-        }
-
-        public int GetHashCode(DataRow dataRow)
-        {
-            if (Object.ReferenceEquals(dataRow, null)) return 0;
-            if (dataRow.ItemArray.Count() == 0) return dataRow.GetHashCode();
-
-            int hashCode = 0;
-
-            for (int i = 0; i < dataRow.ItemArray.Count(); i++)
-                hashCode ^= (dataRow.ItemArray[i] == null ? 0 : dataRow.ItemArray[i].GetHashCode());
-
-            return hashCode;
-        }
-    }
-
-    public partial class Obfuscation
+    public class Obfuscation
     { 
         public IDataPersistence DataPersistence { get; set; }
 
@@ -222,7 +192,7 @@ namespace Obfuscator.Domain
                 {
                     var filter = string.Empty;
                     for (int i = 0; i < groupColumns.Count(); i++)
-                        filter += $"AND {groupColumns[i].Name}={FormatForDataSetFilter(group[i])} ";
+                        filter += $"AND {groupColumns[i].Name}={ParseForDataSetFilter(group[i])} ";
 
                     var filteredDataTable = dataSet.Tables[0].Select(filter.Substring(3)).CopyToDataTable();
                     ScrambleColumnValues(scrambleColumns, filteredDataTable, scrambledResult);
@@ -234,7 +204,7 @@ namespace Obfuscator.Domain
             return scrambledResult;
         }
 
-        private string FormatForDataSetFilter(object value)
+        private string ParseForDataSetFilter(object value)
         {
             string formattedResult = value.ToString();
 
@@ -304,6 +274,7 @@ namespace Obfuscator.Domain
             {
                 if (DateTime.TryParseExact(value, format, CultureInfo.InvariantCulture, DateTimeStyles.None, out dateValue))
                 {
+                    // moving the format to the first position will probably speed up next datetime parsing operations 
                     MoveFormatToFirstInTheList(format);
                     return dateValue;
                 }

@@ -57,6 +57,7 @@
   <ItemGroup>
     <Compile Include="ConsoleInterface.cs" />
     <Compile Include="Domain\CsvFile.cs" />
+    <Compile Include="Domain\DataRowComparer.cs" />
     <Compile Include="Domain\DataSourceType.cs" />
     <Compile Include="Domain\DniNie.cs" />
     <Compile Include="Domain\FileSerializer.cs" />
