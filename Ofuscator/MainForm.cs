@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace Obfuscator
@@ -17,6 +18,8 @@ namespace Obfuscator
     public partial class MainForm : Form
     {
         private const int ROWS_TO_SHOW_IN_COLUMN_SELECTOR = 10;
+
+        private CancellationTokenSource _cancellationTokenSource;
 
         public MainForm()
         {
@@ -133,7 +136,10 @@ namespace Obfuscator
                 StatusChanged = StatusInformationChanged,
             };
 
-            var tables = obfuscation.RetrieveDatabaseInfo();
+            if (_cancellationTokenSource?.Token.CanBeCanceled ?? false) _cancellationTokenSource.Cancel();
+            _cancellationTokenSource = new CancellationTokenSource();
+
+            var tables = obfuscation.RetrieveDatabaseInfo(_cancellationTokenSource);
             return tables;
         }
 
@@ -234,6 +240,8 @@ namespace Obfuscator
             var loadDialog = new OpenFileDialog();
             var dialogResult = loadDialog.ShowDialog();
             if (dialogResult == DialogResult.Cancel) return;
+
+            if (_cancellationTokenSource?.Token.CanBeCanceled ?? false) _cancellationTokenSource.Cancel();
 
             var serializer = new FileSerializer();
             var obfuscationOps = serializer.LoadObfuscationOps(loadDialog.FileName);

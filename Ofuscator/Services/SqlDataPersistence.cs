@@ -7,6 +7,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Obfuscator.Services
@@ -33,19 +34,44 @@ namespace Obfuscator.Services
             return tables;
         }
 
+        private List<DbTableInfo> RetrieveTables(SqlConnection connection)
+        {
+            var tables = new List<DbTableInfo>();
+
+            var command = connection.CreateCommand();
+            command.CommandType = CommandType.Text;
+            command.CommandText = "SELECT Table_Schema, Table_Name FROM Information_Schema.Tables WHERE Table_Type = 'BASE TABLE' ORDER BY Table_Schema, Table_Name";
+            var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                var tableName = $"{reader["Table_Schema"]}.{reader["Table_Name"]}";
+                var tableInfo = new DbTableInfo
+                {
+                    Name = tableName,
+                    Columns = new List<DbColumnInfo>(),
+                    ConnectionString = this.ConnectionString
+                };
+                tables.Add(tableInfo);
+            }
+            reader.Close();
+
+            return tables;
+        }
+
         public string GetDatabaseName()
         {
             var connection = new SqlConnection(this.ConnectionString);
             return connection.Database;
         }
 
-        public void RetrieveAllTableColumnsAsync(List<DbTableInfo> tables)
+        public void RetrieveAllTableColumnsAsync(List<DbTableInfo> tables, CancellationTokenSource cancellationTokenSource)
         {
             var task = new Task(() =>
             {
-                RetrieveTableColumns(tables);
-                StatusChanged?.Invoke(new StatusInformation { Message = $"DONE" }, null);
-            });
+                RetrieveTableColumns(tables, cancellationTokenSource);
+                var statusMessage = (cancellationTokenSource.IsCancellationRequested ? "CANCELLED" : "DONE");
+                StatusChanged?.Invoke(new StatusInformation { Message = statusMessage }, null);
+            }, cancellationTokenSource.Token);
             task.Start();
         }
 
@@ -73,7 +99,7 @@ namespace Obfuscator.Services
                 table.Columns.Add(new DbColumnInfo
                 {
                     Name = (string)reader["Column_Name"],
-                    Index = ((int)reader["Ordinal_Position"])-1,
+                    Index = ((int)reader["Ordinal_Position"]) - 1,
                     IsNullable = ((string)reader["Is_Nullable"] == "YES"),
                     DataType = (string)reader["Data_Type"],
                     CharacterMaxLength = (reader["Character_Maximum_Length"] is DBNull ? 0 : (int)reader["Character_Maximum_Length"])
@@ -152,6 +178,31 @@ namespace Obfuscator.Services
             CloseConnection();
         }
 
+        private void RetrieveTableColumns(List<DbTableInfo> tables, CancellationTokenSource cancellationTokenSource)
+        {
+            if (cancellationTokenSource == null) cancellationTokenSource = new CancellationTokenSource();
+
+            OpenConnection();
+            var status = new StatusInformation { Total = tables.Count() };
+            try
+            {
+                foreach (var table in tables)
+                {
+                    RetrieveTableColumns(table, status);
+                    status.Progress++;
+                    if (cancellationTokenSource.IsCancellationRequested) break;
+                }
+            }
+            catch
+            {
+                throw;
+            }
+            finally
+            {
+                CloseConnection();
+            }
+        }
+
         private List<string> GetIdentityColumns(string tableName)
         {
             var idColumns = new List<string>();
@@ -207,42 +258,6 @@ namespace Obfuscator.Services
         {
             _connection = new SqlConnection(ConnectionString);
             _connection.Open();
-        }
-
-        private void RetrieveTableColumns(List<DbTableInfo> tables)
-        {
-            OpenConnection();
-            var status = new StatusInformation { Total = tables.Count() };
-            foreach (var table in tables)
-            {
-                RetrieveTableColumns(table, status);
-                status.Progress++;
-            }
-            CloseConnection();
-        }
-
-        private List<DbTableInfo> RetrieveTables(SqlConnection connection)
-        {
-            var tables = new List<DbTableInfo>();
-
-            var command = connection.CreateCommand();
-            command.CommandType = CommandType.Text;
-            command.CommandText = "SELECT Table_Schema, Table_Name FROM Information_Schema.Tables WHERE Table_Type = 'BASE TABLE' ORDER BY Table_Schema, Table_Name";
-            var reader = command.ExecuteReader();
-            while (reader.Read())
-            {
-                var tableName = $"{reader["Table_Schema"]}.{reader["Table_Name"]}";
-                var tableInfo = new DbTableInfo
-                {
-                    Name = tableName,
-                    Columns = new List<DbColumnInfo>(),
-                    ConnectionString = this.ConnectionString
-                };
-                tables.Add(tableInfo);
-            }
-            reader.Close();
-
-            return tables;
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Threading;
 using Obfuscator.Domain;
 using Obfuscator.Entities;
 
@@ -14,7 +15,7 @@ namespace Obfuscator.Interfaces
 
         List<DbTableInfo> RetrieveTables();
 
-        void RetrieveAllTableColumnsAsync(List<DbTableInfo> tables);
+        void RetrieveAllTableColumnsAsync(List<DbTableInfo> tables, CancellationTokenSource cancellationToken);
 
         void RetrieveTableColumns(DbTableInfo table, StatusInformation statusInfo);
 

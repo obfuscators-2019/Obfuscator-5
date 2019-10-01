@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 
 namespace Obfuscator.Domain
 {
@@ -61,11 +62,10 @@ namespace Obfuscator.Domain
 
         public List<DbTableInfo> Tables { get; set; }
 
-        public List<DbTableInfo> RetrieveDatabaseInfo()
+        public List<DbTableInfo> RetrieveDatabaseInfo(CancellationTokenSource cancellationTokenSource = null)
         {
             this.Tables = DataPersistence.RetrieveTables();
-            DataPersistence.RetrieveAllTableColumnsAsync(this.Tables);
-
+            DataPersistence.RetrieveAllTableColumnsAsync(this.Tables, cancellationTokenSource);
             return this.Tables;
         }
 
