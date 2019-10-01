@@ -113,6 +113,7 @@ namespace Tests
         public void UsingScramblingGeneratorObfuscation_ShufflesExistingValuesWithinGroup()
         {
             // ARRANGE
+            var valueColumnIndex = 0;
             var testGroupingColumn = AddGroupColumn_ToObfuscationOperation_AndDataSet("TestingGroup");
             var originalRows = AddValues_AndGroup_ToDataSet();
 
@@ -132,19 +133,20 @@ namespace Tests
             foreach (var groupIndex in distinctGroups)
             {
                 var originalValuesInGroup = originalRows.Where(dr => (int)dr[testGroupingColumn.Index] == groupIndex).ToList();
-                var currentValuesInGroup = currentValues.Where(dr => ((string)dr[0]).EndsWith($"-{groupIndex}")).Select(x => x.ItemArray).ToList();
+                var currentValuesInGroup = currentValues.Where(dr => ((string)dr[valueColumnIndex]).EndsWith($"-{groupIndex}")).Select(x => x.ItemArray).ToList();
 
                 var allOk = true;
-                foreach (var originalValue in originalValuesInGroup)
-                {
-                    var searchOriginal = new ObjectArraySearch(originalValue);
-                    var indexOnCurrentValues = currentValuesInGroup.FindIndex(searchOriginal.ContentEquals);
+                if (originalValuesInGroup.Count() > 1)
+                    foreach (var originalValueRow in originalValuesInGroup)
+                    {
+                        var rowWithSameValueThanOriginal = currentValuesInGroup.FirstOrDefault(cv => cv[valueColumnIndex].Equals(originalValueRow[valueColumnIndex]));
+                        var indexOnCurrentValues = currentValuesInGroup.IndexOf(rowWithSameValueThanOriginal);
 
-                    allOk =  indexOnCurrentValues >= 0;
-                    if (originalValuesInGroup.Count > 1) allOk &= originalValuesInGroup.IndexOf(originalValue) != indexOnCurrentValues;
+                        allOk =  indexOnCurrentValues >= 0;
+                        allOk &= originalValuesInGroup.IndexOf(originalValueRow) != indexOnCurrentValues;
 
-                    if (!allOk) break;
-                }
+                        if (!allOk) break;
+                    }
 
                 Assert.AreEqual(originalValuesInGroup.Count(), currentValuesInGroup.Count());
                 Assert.IsTrue(allOk, $"Original sequence: {string.Join(",", originalValuesInGroup.Select(ov => ov[0]))}  Scrambled sequence: {string.Join(",", currentValuesInGroup.Select(cv => cv[0]))}");
@@ -155,6 +157,7 @@ namespace Tests
         public void UsingScramblingGeneratorObfuscation_ShufflesExistingValuesWithinGroups()
         {
             // ARRANGE
+            var valueColumnIndex = 0;
             var testGroupingColumn1 = AddGroupColumn_ToObfuscationOperation_AndDataSet("TestingGroup1");
             var testGroupingColumn2 = AddGroupColumn_ToObfuscationOperation_AndDataSet("TestingGroup2");
             var originalRows = AddValues_AndGroup_ToDataSet();
@@ -175,23 +178,24 @@ namespace Tests
             foreach (var groupIndex in distinctGroups)
             {
                 var originalValuesInGroup = originalRows.Where(dr => (int)dr[testGroupingColumn1.Index] == (int)groupIndex[0] && (int)dr[testGroupingColumn2.Index] == (int)groupIndex[1]).ToList();
-                var currentValuesInGroup = currentValues.Where(dr => ((string)dr[0]).EndsWith($"-{(int)groupIndex[0]}-{(int)groupIndex[1]}")).Select(x => x.ItemArray).ToList();
+                var currentValuesInGroup = currentValues.Where(dr => ((string)dr[valueColumnIndex]).EndsWith($"-{(int)groupIndex[0]}-{(int)groupIndex[1]}")).Select(x => x.ItemArray).ToList();
 
                 var allOk = true;
                 if (originalValuesInGroup.Count() > 1)
-                    foreach (var originalValue in originalValuesInGroup)
+                    foreach (var originalValueRow in originalValuesInGroup)
                     {
-                        var searchOriginal = new ObjectArraySearch(originalValue);
-                        var indexOnCurrentValues = currentValuesInGroup.FindIndex(searchOriginal.ContentEquals);
+                        var rowWithSameValueThanOriginal = currentValuesInGroup.FirstOrDefault(cv => cv[valueColumnIndex].Equals(originalValueRow[valueColumnIndex]));
+                        var indexOnCurrentValues = currentValuesInGroup.IndexOf(rowWithSameValueThanOriginal);
 
                         allOk = indexOnCurrentValues >= 0;
-                        allOk &= originalValuesInGroup.IndexOf(originalValue) != indexOnCurrentValues;
+                        allOk &= originalValuesInGroup.IndexOf(originalValueRow) != indexOnCurrentValues;
 
                         if (!allOk) break;
                     }
 
                 Assert.AreEqual(originalValuesInGroup.Count(), currentValuesInGroup.Count());
-                Assert.IsTrue(allOk, $"Original sequence: {string.Join(",", originalValuesInGroup.Select(ov => ov[0]))}  Scrambled sequence: {string.Join(",", currentValuesInGroup.Select(cv => cv[0]))}");
+                Assert.IsTrue(allOk, $"Original sequence: {string.Join(",", originalValuesInGroup.Select(ov => ov[valueColumnIndex]))}" +
+                    $"  Scrambled sequence: {string.Join(",", currentValuesInGroup.Select(cv => cv[valueColumnIndex]))}");
             }
         }
 
@@ -213,7 +217,7 @@ namespace Tests
 
                 var originalValue = valuesOnGroup[new Random().Next(valuesOnGroup.Count())];
                 var row = new List<object> { 
-                    $"{originalValue}-{DateTime.Now.Ticks}-{string.Join("-", randomGroups)}"
+                    $"{originalValue}-{DateTime.Now.Ticks}-{string.Join("-", randomGroups)}" // time ticks makes the value unique for testing purposes
                 };
                 row.AddRange(randomGroups);
 
