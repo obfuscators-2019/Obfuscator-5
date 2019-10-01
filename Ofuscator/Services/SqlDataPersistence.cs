@@ -73,7 +73,7 @@ namespace Obfuscator.Services
                 table.Columns.Add(new DbColumnInfo
                 {
                     Name = (string)reader["Column_Name"],
-                    Index = (int)reader["Ordinal_Position"],
+                    Index = ((int)reader["Ordinal_Position"])-1,
                     IsNullable = ((string)reader["Is_Nullable"] == "YES"),
                     DataType = (string)reader["Data_Type"],
                     CharacterMaxLength = (reader["Character_Maximum_Length"] is DBNull ? 0 : (int)reader["Character_Maximum_Length"])
@@ -109,21 +109,42 @@ namespace Obfuscator.Services
             OpenConnection();
 
             var idColumns = GetIdentityColumns( obfuscationOperation.Destination.Name);
-            var updateQuery = $"UPDATE {obfuscationOperation.Destination.Name}" +
-                $" SET {obfuscationOperation.Destination.Columns[0].Name} = @param_{obfuscationOperation.Destination.Columns[0].Name}" +
-                $" WHERE {obfuscationOperation.Destination.Columns[0].Name} = @param_old_{obfuscationOperation.Destination.Columns[0].Name}";
-            if (idColumns.Any())
-                foreach (var idColumn in idColumns) updateQuery += $" AND {idColumn}=@param_{idColumn}";
+            var updateQuery = $"UPDATE {obfuscationOperation.Destination.Name} SET ";
+
+            foreach (var valueColumn in obfuscationOperation.Destination.Columns.Where(c => !c.IsGroupColumn))
+                updateQuery += $" {valueColumn.Name}=@param_{valueColumn.Name}";
+
+            updateQuery += " WHERE";
+
+            foreach (var valueColumn in obfuscationOperation.Destination.Columns.Where(c => !c.IsGroupColumn))
+                updateQuery += $" AND {valueColumn.Name}=@param_old_{valueColumn.Name}";
+
+            foreach (var groupColumn in obfuscationOperation.Destination.Columns.Where(gc => gc.IsGroupColumn))
+                updateQuery += $" AND {groupColumn.Name}=@param_group_{groupColumn.Name}";
+
+            foreach (var idColumn in idColumns)
+                updateQuery += $" AND {idColumn}=@param_id_{idColumn}";
+
+            updateQuery = updateQuery.Replace("WHERE AND", "WHERE");
 
             foreach (DataRow row in dataSet.Tables[0].Rows)
             {
                 var updateCommand = _connection.CreateCommand();
                 updateCommand.CommandType = CommandType.Text;
                 updateCommand.CommandText = updateQuery;
-                updateCommand.Parameters.AddWithValue($"param_{obfuscationOperation.Destination.Columns[0].Name}", row[obfuscationOperation.Destination.Columns[0].Name]);
-                updateCommand.Parameters.AddWithValue($"param_old_{obfuscationOperation.Destination.Columns[0].Name}", row[obfuscationOperation.Destination.Columns[0].Name, DataRowVersion.Original]);
-                if (idColumns.Any())
-                    foreach (var idColumn in idColumns) updateCommand.Parameters.AddWithValue($"param_{idColumn}", row[idColumn]);
+
+                foreach (var valueColumn in obfuscationOperation.Destination.Columns.Where(c => !c.IsGroupColumn))
+                    updateCommand.Parameters.AddWithValue($"param_{valueColumn.Name}", row[valueColumn.Name]);
+
+                foreach (var valueColumn in obfuscationOperation.Destination.Columns.Where(c => !c.IsGroupColumn))
+                    updateCommand.Parameters.AddWithValue($"param_old_{valueColumn.Name}", row[valueColumn.Name, DataRowVersion.Original]);
+
+                foreach (var groupColumn in obfuscationOperation.Destination.Columns.Where(gc => gc.IsGroupColumn))
+                    updateCommand.Parameters.AddWithValue($"param_group_{groupColumn.Name}", row[groupColumn.Name]);
+
+                foreach (var idColumn in idColumns)
+                    updateCommand.Parameters.AddWithValue($"param_id_{idColumn}", row[idColumn]);
+
                 updateCommand.ExecuteNonQuery();
             }
 
@@ -132,7 +153,7 @@ namespace Obfuscator.Services
 
         private List<string> GetIdentityColumns(string tableName)
         {
-            var columns = new List<string>();
+            var idColumns = new List<string>();
 
             var command = _connection.CreateCommand();
             command.CommandType = CommandType.Text;
@@ -142,7 +163,7 @@ namespace Obfuscator.Services
                 + $" ORDER BY 1, 2";
             var reader = command.ExecuteReader();
             while (reader.Read())
-                columns.Add((string)reader["IdentityColumn"]);
+                idColumns.Add((string)reader["IdentityColumn"]);
 
             reader.Close();
 
@@ -157,11 +178,11 @@ namespace Obfuscator.Services
 
             reader = command.ExecuteReader();
             while (reader.Read())
-                if (!columns.Contains((string)reader["ColumnName"])) columns.Add((string)reader["ColumnName"]);
+                if (!idColumns.Contains((string)reader["ColumnName"])) idColumns.Add((string)reader["ColumnName"]);
 
             reader.Close();
 
-            return columns;
+            return idColumns;
         }
 
         private string AddOrderClauseToQuery(ObfuscationInfo obfuscationOperation, string sqlQuery)
