@@ -62,7 +62,7 @@ namespace Tests
         }
 
         [Test]
-        public void UsingDniGeneratorObfuscation_ReplacesAllCurrentValues()
+        public void DniObfuscation_ReplacesAllCurrentValues()
         {
             List<string> originalValues = AddValues_ToDataSet();
 
@@ -92,7 +92,7 @@ namespace Tests
         }
 
         [Test]
-        public void UsingScramblingGeneratorObfuscation_ShufflesExistingValues()
+        public void Scrambling_ShufflesExistingValues()
         {
             List<string> originalValues = AddValues_ToDataSet();
 
@@ -110,10 +110,9 @@ namespace Tests
         }
 
         [Test]
-        public void UsingScramblingGeneratorObfuscation_ShufflesExistingValuesWithinGroup()
+        public void Scrambling_ShufflesExistingValuesWithinGroup()
         {
             // ARRANGE
-            var valueColumnIndex = 0;
             var testGroupingColumn = AddGroupColumn_ToObfuscationOperation_AndDataSet("TestingGroup");
             var originalRows = AddValues_AndGroup_ToDataSet();
 
@@ -127,12 +126,18 @@ namespace Tests
             obfuscation.RunOperations(new List<ObfuscationInfo> { _obfuscationOperation });
 
             // ASSERT
+            AssertScramblingForOneGroupColumn(testGroupingColumn, originalRows);
+        }
+
+        private void AssertScramblingForOneGroupColumn(DbColumnInfo testGroupingColumn, List<object[]> originalRows)
+        {
+            var valueColumnIndex = 0;
             var currentValues = _dataSet.Tables[0].Rows.Cast<DataRow>().ToList();
-            var distinctGroups = originalRows.Select(dr => (int)dr[testGroupingColumn.Index]).Distinct();
+            var distinctGroups = originalRows.Select(dr => dr[testGroupingColumn.Index]).Distinct();
 
             foreach (var groupIndex in distinctGroups)
             {
-                var originalValuesInGroup = originalRows.Where(dr => (int)dr[testGroupingColumn.Index] == groupIndex).ToList();
+                var originalValuesInGroup = originalRows.Where(dr => dr[testGroupingColumn.Index].Equals(groupIndex)).ToList();
                 var currentValuesInGroup = currentValues.Where(dr => ((string)dr[valueColumnIndex]).EndsWith($"-{groupIndex}")).Select(x => x.ItemArray).ToList();
 
                 var allOk = true;
@@ -142,7 +147,7 @@ namespace Tests
                         var rowWithSameValueThanOriginal = currentValuesInGroup.FirstOrDefault(cv => cv[valueColumnIndex].Equals(originalValueRow[valueColumnIndex]));
                         var indexOnCurrentValues = currentValuesInGroup.IndexOf(rowWithSameValueThanOriginal);
 
-                        allOk =  indexOnCurrentValues >= 0;
+                        allOk = indexOnCurrentValues >= 0;
                         allOk &= originalValuesInGroup.IndexOf(originalValueRow) != indexOnCurrentValues;
 
                         if (!allOk) break;
@@ -154,7 +159,7 @@ namespace Tests
         }
 
         [Test]
-        public void UsingScramblingGeneratorObfuscation_ShufflesExistingValuesWithinGroups()
+        public void Scrambling_ShufflesExistingValuesWithinGroups()
         {
             // ARRANGE
             var valueColumnIndex = 0;
@@ -199,11 +204,30 @@ namespace Tests
             }
         }
 
+        [Test]
+        public void ScramblingCanBeGroupedByStringField()
+        {
+            // ARRANGE
+            var testGroupingColumn = AddStringGroupColumn_ToObfuscationOperation_AndDataSet("StringTestGroup");
+            var originalRows = AddValues_AndGroup_ToDataSet();
+            var fakeDataPersistence = A.Fake<IDataPersistence>();
+            A.CallTo(() => fakeDataPersistence.GetTableData(_obfuscationOperation)).Returns(_dataSet);
+            _obfuscationOperation.Origin.DataSourceType = DataSourceType.Scramble;
+
+            // ACT
+            var obfuscation = new Obfuscation { DataPersistence = fakeDataPersistence };
+            obfuscation.RunOperations(new List<ObfuscationInfo> { _obfuscationOperation });
+
+            // ASSERT
+            AssertScramblingForOneGroupColumn(testGroupingColumn, originalRows);
+        }
+
         private List<object[]> AddValues_AndGroup_ToDataSet()
         {
-            var valuesOnGroup = new List<string> { "uno", "dos", "tres" };
+            var availableValuesForGroups = new List<string> { "uno", "dos", "tres" };
             var rowsAdded = new List<object[]>();
-            var totalGroups = _obfuscationOperation.Destination.Columns.Where(c => c.IsGroupColumn).Count();
+            var groupColumns = _obfuscationOperation.Destination.Columns.Where(c => c.IsGroupColumn).ToList();
+            var totalGroups = groupColumns.Count();
             var totalElementsToAdd = 9;
 
             for (int i = 0; i <= totalElementsToAdd ; i++)
@@ -211,13 +235,18 @@ namespace Tests
                 var randomGroups = new List<object>();
                 for (int j = 0; j < totalGroups; j++)
                 {
-                    randomGroups.Add((object)new Random().Next(totalGroups));
+                    if (groupColumns[j].DataType.Contains("char") || groupColumns[j].DataType.Contains("uniqueidentifier") ||
+                        groupColumns[j].DataType.Contains("date") || groupColumns[j].DataType.Contains("variant") ||
+                        groupColumns[j].DataType.Contains("varbinary"))
+                        randomGroups.Add((object)(new Random().Next(totalGroups)).ToString());
+                    else
+                        randomGroups.Add((object)new Random().Next(totalGroups));
                     System.Threading.Thread.Sleep(3); // delay needed in order to get different groups
                 }
 
-                var originalValue = valuesOnGroup[new Random().Next(valuesOnGroup.Count())];
+                var selectedValue = availableValuesForGroups[new Random().Next(availableValuesForGroups.Count())];
                 var row = new List<object> { 
-                    $"{originalValue}-{DateTime.Now.Ticks}-{string.Join("-", randomGroups)}" // time ticks makes the value unique for testing purposes
+                    $"{selectedValue}-{DateTime.Now.Ticks}-{string.Join("-", randomGroups)}" // time ticks makes the value unique for testing purposes
                 };
                 row.AddRange(randomGroups);
 
@@ -247,6 +276,31 @@ namespace Tests
                 {
                     ColumnName = columnName,
                     DataType = typeof(int),
+                    AllowDBNull = false,
+                });
+
+            return _obfuscationOperation.Destination.Columns.FirstOrDefault(c => c.Index == columnIndex);
+        }
+
+        private DbColumnInfo AddStringGroupColumn_ToObfuscationOperation_AndDataSet(string columnName)
+        {
+            var columnIndex = _obfuscationOperation.Destination.Columns.Last().Index + 1;
+
+            _obfuscationOperation.Destination.Columns.Add(new DbColumnInfo
+            {
+                Index = columnIndex,
+                Name = columnName,
+                DataType = "nvarchar",
+                IsGroupColumn = true,
+                IsNullable = false,
+                CharacterMaxLength = 50,
+            });
+
+            _dataSet.Tables[0].Columns.Add(
+                new DataColumn
+                {
+                    ColumnName = columnName,
+                    DataType = typeof(string),
                     AllowDBNull = false,
                 });
 

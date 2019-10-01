@@ -222,7 +222,7 @@ namespace Obfuscator.Domain
                 {
                     var filter = string.Empty;
                     for (int i = 0; i < groupColumns.Count(); i++)
-                        filter += $"AND {groupColumns[i].Name}={group[i].ToString()} ";
+                        filter += $"AND {groupColumns[i].Name}={FormatForDataSetFilter(group[i])} ";
 
                     var filteredDataTable = dataSet.Tables[0].Select(filter.Substring(3)).CopyToDataTable();
                     ScrambleColumnValues(scrambleColumns, filteredDataTable, scrambledResult);
@@ -232,6 +232,15 @@ namespace Obfuscator.Domain
                 ScrambleColumnValues(scrambleColumns, dataSet.Tables[0], scrambledResult);
 
             return scrambledResult;
+        }
+
+        private string FormatForDataSetFilter(object value)
+        {
+            string formattedResult = value.ToString();
+
+            if (value is string || value is Guid || value is DateTime) formattedResult = $"'{formattedResult}'";
+
+            return formattedResult;
         }
 
         private void ScrambleColumnValues(List<DbColumnInfo> columnsToScramble, DataTable dataTableToScramble, DataTable scrambledResult)

@@ -112,8 +112,9 @@ namespace Obfuscator.Services
             var updateQuery = $"UPDATE {obfuscationOperation.Destination.Name} SET ";
 
             foreach (var valueColumn in obfuscationOperation.Destination.Columns.Where(c => !c.IsGroupColumn))
-                updateQuery += $" {valueColumn.Name}=@param_{valueColumn.Name}";
+                updateQuery += $", {valueColumn.Name}=@param_{valueColumn.Name}";
 
+            updateQuery = updateQuery.Replace("SET ,", "SET");
             updateQuery += " WHERE";
 
             foreach (var valueColumn in obfuscationOperation.Destination.Columns.Where(c => !c.IsGroupColumn))
